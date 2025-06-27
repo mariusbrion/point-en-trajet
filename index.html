@@ -147,6 +147,15 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
         }
+        .btn-points {
+            background: linear-gradient(45deg, #fd7e14, #ffc107);
+            color: white;
+            margin-left: 10px;
+        }
+        .btn-points:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(253, 126, 20, 0.3);
+        }
         .progress-container {
             display: none;
             margin: 20px 0;
@@ -319,7 +328,10 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                     💾 Télécharger les résultats CSV
                 </button>
                 <button class="btn btn-geojson" id="downloadGeoJsonBtn" onclick="downloadGeoJSON()" style="display: none;">
-                    🗺️ Télécharger GeoJSON
+                    🗺️ Télécharger GeoJSON (lignes)
+                </button>
+                <button class="btn btn-points" id="downloadGeoJsonPointsBtn" onclick="downloadGeoJSONPoints()" style="display: none;">
+                    📍 Télécharger GeoJSON (tous les points)
                 </button>
             </div>
         </div>
@@ -464,7 +476,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 radiuses: [radius, radius],
                 format: "json",
                 instructions: false,
-                geometry: true, // Importante : demander la géométrie
+                geometry: true,
                 elevation: false
             };
 
@@ -554,6 +566,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             document.getElementById('results').style.display = 'block';
             document.getElementById('downloadBtn').style.display = 'none';
             document.getElementById('downloadGeoJsonBtn').style.display = 'none';
+            document.getElementById('downloadGeoJsonPointsBtn').style.display = 'none';
 
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
@@ -642,9 +655,10 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
             document.getElementById('downloadBtn').style.display = 'inline-block';
             
-            // Afficher le bouton GeoJSON seulement s'il y a des trajets réussis
+            // Afficher les boutons GeoJSON seulement s'il y a des trajets réussis
             if (successCount > 0) {
                 document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
+                document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
             }
         }
 
@@ -751,6 +765,81 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
             // Afficher un message de confirmation
             alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
+        }
+
+        function downloadGeoJSONPoints() {
+            if (processedData.length === 0) {
+                alert('Aucune donnée à télécharger');
+                return;
+            }
+
+            // Filtrer uniquement les trajets réussis avec géométrie
+            const successfulRoutes = processedData.filter(route => 
+                route.status === 'success' && route.geometry
+            );
+
+            if (successfulRoutes.length === 0) {
+                alert('Aucun trajet réussi avec géométrie à exporter');
+                return;
+            }
+
+            // Créer le GeoJSON avec tous les points des itinéraires
+            const geojson = {
+                type: "FeatureCollection",
+                features: []
+            };
+
+            successfulRoutes.forEach(route => {
+                try {
+                    // Décoder la polyline ou utiliser les coordonnées directement
+                    let coordinates;
+                    if (typeof route.geometry === 'string') {
+                        coordinates = decodePolyline(route.geometry);
+                    } else if (route.geometry && route.geometry.coordinates) {
+                        coordinates = route.geometry.coordinates;
+                    } else {
+                        console.warn(`Géométrie invalide pour ${route.id}`);
+                        return;
+                    }
+
+                    // Ajouter chaque point de la ligne comme un point individuel
+                    coordinates.forEach((point, index) => {
+                        const [longitude, latitude] = point; // Extraction des coordonnées
+                        
+                        const pointFeature = {
+                            type: "Feature",
+                            properties: {
+                                id: route.id,
+                                latitude: latitude,
+                                longitude: longitude,
+                                point_index: index,
+                                total_points: coordinates.length,
+                                distance_km: parseFloat(route.distance_km),
+                                duration_minutes: parseInt(route.duration_minutes),
+                                profile: document.getElementById('profile').value,
+                                point_type: index === 0 ? 'start' : 
+                                          (index === coordinates.length - 1 ? 'end' : 'intermediate')
+                            },
+                            geometry: {
+                                type: "Point",
+                                coordinates: [longitude, latitude]
+                            }
+                        };
+
+                        geojson.features.push(pointFeature);
+                    });
+
+                } catch (error) {
+                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
+                }
+            });
+
+            // Télécharger le fichier GeoJSON
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
+
+            // Afficher un message de confirmation
+            alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
         }
     </script>
 </body>
