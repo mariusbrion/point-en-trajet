@@ -283,6 +283,8 @@
                     <option value="cycling-road">Vélo de route</option>
                     <option value="cycling-mountain">VTT</option>
                     <option value="cycling-electric">Vélo électrique</option>
+                    <option value="driving-car">Voiture (test)</option>
+                    <option value="foot-walking">Marche (test)</option>
                 </select>
             </div>
         </div>
@@ -404,42 +406,48 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         async function calculateRoute(startLat, startLon, endLat, endLon, apiKey, profile) {
-            const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
+            // URL corrigée pour l'API OpenRouteService
+            const url = `https://api.openrouteservice.org/v2/directions/${profile}/geojson`;
             
             const requestBody = {
                 coordinates: [[startLon, startLat], [endLon, endLat]],
-                format: "json",
-                instructions: false,
-                geometry: true
+                instructions: false
             };
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Authorization': apiKey,
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
                     },
                     body: JSON.stringify(requestBody)
                 });
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Response Error:', errorText);
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const data = await response.json();
                 
-                if (data.routes && data.routes.length > 0) {
-                    const route = data.routes[0];
+                if (data.features && data.features.length > 0) {
+                    const route = data.features[0];
+                    const properties = route.properties;
                     return {
-                        distance: (route.summary.distance / 1000).toFixed(2), // km
-                        duration: Math.round(route.summary.duration / 60), // minutes
+                        distance: (properties.summary.distance / 1000).toFixed(2), // km
+                        duration: Math.round(properties.summary.duration / 60), // minutes
                         geometry: route.geometry
                     };
                 } else {
                     throw new Error('Aucun itinéraire trouvé');
                 }
             } catch (error) {
+                if (error.message.includes('HTTP')) {
+                    throw error;
+                }
                 throw new Error(`Erreur API: ${error.message}`);
             }
         }
