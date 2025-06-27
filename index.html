@@ -2,125 +2,606 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Générer des trajets à vélo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'Itinéraires Vélo</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #map { height: 500px; width: 100%; }
-        input, button { margin: 10px; padding: 8px; }
-        #status { color: red; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: monospace;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.1);
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        .success {
+            background: rgba(40, 167, 69, 0.1);
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-    <h2>Générer des trajets à vélo pour Heatmap</h2>
-    <div>
-        <label>Charger le fichier CSV (id,start_lat,start_lon,end_lat,end_lon):</label>
-        <input type="file" id="csvFile" accept=".csv">
+    <div class="container">
+        <div class="header">
+            <h1>🚴‍♂️ Calculateur d'Itinéraires Vélo</h1>
+            <p>Calcul d'itinéraires vélo avec OpenRouteService - Traitement par lot</p>
+        </div>
+
+        <div class="form-section">
+            <h3>📍 Configuration</h3>
+            <div class="form-group">
+                <label for="apiKey">Clé API OpenRouteService :</label>
+                <input type="text" id="apiKey" value="5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e" placeholder="Votre clé API">
+            </div>
+            <div class="form-group">
+                <label for="profile">Profil de transport :</label>
+                <select id="profile">
+                    <option value="cycling-regular">Vélo standard</option>
+                    <option value="cycling-road">Vélo de route</option>
+                    <option value="cycling-mountain">VTT</option>
+                    <option value="cycling-electric">Vélo électrique</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>📂 Données d'entrée</h3>
+            <div class="form-group">
+                <label>Option 1 : Fichier CSV</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="csvFile" class="file-input" accept=".csv,.txt">
+                    <label for="csvFile" class="file-input-label">📁 Sélectionner un fichier CSV</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="csvData">Option 2 : Coller les données CSV :</label>
+                <textarea id="csvData" placeholder="Collez vos données CSV ici...
+Format : id,start_lat,start_lon,end_lat,end_lon
+Exemple :
+employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <button class="btn btn-primary" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
+            <button class="btn btn-secondary" onclick="downloadSample()">📥 Télécharger exemple CSV</button>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Traitement en cours...</div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <h3>📊 Résultats</h3>
+            <div class="stats" id="stats"></div>
+            <div id="resultsList"></div>
+            <button class="btn btn-primary" id="downloadBtn" onclick="downloadResults()" style="display: none;">
+                💾 Télécharger les résultats CSV
+            </button>
+        </div>
     </div>
-    <button onclick="processTrajets()">Générer les trajets</button>
-    <button onclick="downloadCSV()" disabled id="downloadBtn">Télécharger CSV</button>
-    <div id="status"></div>
-    <div id="map"></div>
 
     <script>
-        // Initialiser la carte Leaflet
-        const map = L.map('map').setView([44.8360, -0.6031], 13); // Centré sur Bordeaux
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+        let processedData = [];
+        let totalRoutes = 0;
+        let successCount = 0;
+        let errorCount = 0;
 
-        const apiKey = '5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e'; // Votre clé API ORS
-        let routes = [];
-        let processedCount = 0;
+        function downloadSample() {
+            const sampleData = `id,start_lat,start_lon,end_lat,end_lon
+employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909
+employé h2,-0.5759420966,44.8124628849,-0.6031024699,44.8266054909
+employé h3,-0.5700829040,44.8121878266,-0.6031024699,44.8266054909
+employé g1,-0.5716569701,44.8292473283,-0.5579514365,44.8275367638
+employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
+            
+            downloadCSV(sampleData, 'exemple_donnees.csv');
+        }
 
-        async function processTrajets() {
-            const fileInput = document.getElementById('csvFile');
-            if (!fileInput.files.length) {
-                document.getElementById('status').innerText = 'Erreur : Veuillez charger un fichier CSV !';
-                console.log('Aucun fichier chargé');
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('csvData').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function parseCSVData(csvText) {
+            const lines = csvText.trim().split('\n');
+            const data = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line === '') continue;
+                
+                // Gestion flexible du parsing
+                const parts = line.split(',');
+                if (parts.length >= 5) {
+                    data.push({
+                        id: parts[0].trim(),
+                        start_lat: parseFloat(parts[1]),
+                        start_lon: parseFloat(parts[2]),
+                        end_lat: parseFloat(parts[3]),
+                        end_lon: parseFloat(parts[4])
+                    });
+                } else {
+                    // Tentative de parsing avec espaces
+                    const spaceparts = line.split(/\s+/);
+                    if (spaceparts.length >= 5) {
+                        data.push({
+                            id: spaceparts[0].trim(),
+                            start_lat: parseFloat(spaceparts[1]),
+                            start_lon: parseFloat(spaceparts[2]),
+                            end_lat: parseFloat(spaceparts[3]),
+                            end_lon: parseFloat(spaceparts[4])
+                        });
+                    }
+                }
+            }
+            
+            return data;
+        }
+
+        async function calculateRoute(startLat, startLon, endLat, endLon, apiKey, profile) {
+            const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
+            
+            const requestBody = {
+                coordinates: [[startLon, startLat], [endLon, endLat]],
+                format: "json",
+                instructions: false,
+                geometry: true
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    return {
+                        distance: (route.summary.distance / 1000).toFixed(2), // km
+                        duration: Math.round(route.summary.duration / 60), // minutes
+                        geometry: route.geometry
+                    };
+                } else {
+                    throw new Error('Aucun itinéraire trouvé');
+                }
+            } catch (error) {
+                throw new Error(`Erreur API: ${error.message}`);
+            }
+        }
+
+        async function processRoutes() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const profile = document.getElementById('profile').value;
+            const csvData = document.getElementById('csvData').value.trim();
+
+            if (!apiKey) {
+                alert('Veuillez saisir votre clé API OpenRouteService');
                 return;
             }
 
-            document.getElementById('status').innerText = 'Chargement du CSV...';
-            const file = fileInput.files[0];
+            if (!csvData) {
+                alert('Veuillez fournir des données CSV');
+                return;
+            }
 
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: async function(results) {
-                    console.log('Données CSV brutes:', results.data); // Log pour vérifier le CSV
-                    const trajets = results.data;
+            const inputData = parseCSVData(csvData);
+            if (inputData.length === 0) {
+                alert('Aucune donnée valide trouvée dans le CSV');
+                return;
+            }
 
-                    if (!trajets[0]?.start_lat || !trajets[0]?.start_lon || !trajets[0]?.end_lat || !trajets[0]?.end_lon) {
-                        document.getElementById('status').innerText = 'Erreur : Le CSV doit contenir id, start_lat, start_lon, end_lat, end_lon';
-                        console.log('Colonnes manquantes ou incorrectes');
-                        return;
+            // Réinitialisation
+            processedData = [];
+            totalRoutes = inputData.length;
+            successCount = 0;
+            errorCount = 0;
+
+            // Affichage des éléments de progression
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'none';
+
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const resultsList = document.getElementById('resultsList');
+            
+            resultsList.innerHTML = '';
+
+            // Traitement par lot avec limitation de débit
+            const batchSize = 5; // Limiter à 5 requêtes simultanées
+            const delayBetweenBatches = 1000; // 1 seconde entre les lots
+
+            for (let i = 0; i < inputData.length; i += batchSize) {
+                const batch = inputData.slice(i, i + batchSize);
+                const promises = batch.map(async (item, index) => {
+                    const globalIndex = i + index;
+                    try {
+                        // Petit délai pour éviter la surcharge
+                        await new Promise(resolve => setTimeout(resolve, index * 200));
+                        
+                        const route = await calculateRoute(
+                            item.start_lat, item.start_lon,
+                            item.end_lat, item.end_lon,
+                            apiKey, profile
+                        );
+
+                        const result = {
+                            id: item.id,
+                            start_lat: item.start_lat,
+                            start_lon: item.start_lon,
+                            end_lat: item.end_lat,
+                            end_lon: item.end_lon,
+                            distance_km: route.distance,
+                            duration_minutes: route.duration,
+                            geometry: route.geometry,
+                            status: 'success'
+                        };
+
+                        processedData.push(result);
+                        successCount++;
+
+                        // Mise à jour de l'affichage
+                        const resultDiv = document.createElement('div');
+                        resultDiv.className = 'result-item success';
+                        resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
+                        resultsList.appendChild(resultDiv);
+
+                    } catch (error) {
+                        const result = {
+                            id: item.id,
+                            start_lat: item.start_lat,
+                            start_lon: item.start_lon,
+                            end_lat: item.end_lat,
+                            end_lon: item.end_lon,
+                            distance_km: 'ERREUR',
+                            duration_minutes: 'ERREUR',
+                            geometry: '',
+                            status: 'error',
+                            error: error.message
+                        };
+
+                        processedData.push(result);
+                        errorCount++;
+
+                        // Mise à jour de l'affichage
+                        const resultDiv = document.createElement('div');
+                        resultDiv.className = 'result-item error';
+                        resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
+                        resultsList.appendChild(resultDiv);
                     }
 
-                    document.getElementById('status').innerText = 'Traitement des trajets...';
-                    for (const trajet of trajets) {
-                        console.log('Traitement du trajet:', trajet.id); // Log pour chaque trajet
-                        try {
-                            const url = `https://api.openrouteservice.org/v2/directions/cycling-regular?api_key=${apiKey}&start=${trajet.start_lon},${trajet.start_lat}&end=${trajet.end_lon},${trajet.end_lat}`;
-                            console.log('URL de la requête:', url); // Log pour vérifier l'URL
-                            const response = await fetch(url);
-                            if (!response.ok) {
-                                throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
-                            }
-                            const data = await response.json();
-                            console.log('Réponse API:', data); // Log pour vérifier la réponse
-                            const coordinates = data.features[0].geometry.coordinates;
+                    // Mise à jour de la barre de progression
+                    const progress = ((globalIndex + 1) / totalRoutes) * 100;
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = `Traitement: ${globalIndex + 1}/${totalRoutes}`;
+                    
+                    updateStats();
+                });
 
-                            // Afficher le trajet sur la carte
-                            L.polyline(coordinates.map(coord => [coord[1], coord[0]]), { color: 'blue', weight: 2 }).addTo(map);
-
-                            // Stocker les coordonnées
-                            routes.push({
-                                id: trajet.id || processedCount,
-                                coordinates: coordinates.map(coord => ({ lat: coord[1], lon: coord[0] }))
-                            });
-
-                            processedCount++;
-                            document.getElementById('status').innerText = `Trajets traités : ${processedCount}/${trajets.length}`;
-                        } catch (error) {
-                            console.error(`Erreur pour le trajet ${trajet.id}:`, error);
-                            document.getElementById('status').innerText = `Erreur pour le trajet ${trajet.id}: ${error.message}`;
-                        }
-
-                        // Attendre 1 seconde pour respecter les limites de l'API
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
-
-                    document.getElementById('downloadBtn').disabled = false;
-                    document.getElementById('status').innerText = `Traitement terminé ! ${processedCount} trajets générés.`;
-                    if (routes.length > 0) {
-                        map.fitBounds(L.featureGroup(routes.map(r => L.polyline(r.coordinates.map(c => [c.lat, c.lon]))).getBounds());
-                    }
-                },
-                error: function(error) {
-                    console.error('Erreur PapaParse:', error);
-                    document.getElementById('status').innerText = 'Erreur lors de la lecture du CSV';
+                await Promise.all(promises);
+                
+                // Délai entre les lots
+                if (i + batchSize < inputData.length) {
+                    await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
                 }
-            });
+            }
+
+            // Finalisation
+            progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
+            document.getElementById('downloadBtn').style.display = 'inline-block';
         }
 
-        function downloadCSV() {
-            let csvContent = "route_id,latitude,longitude\n";
-            routes.forEach(route => {
-                route.coordinates.forEach(coord => {
-                    csvContent += `${route.id},${coord.lat},${coord.lon}\n`;
-                });
-            });
+        function updateStats() {
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalRoutes}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${successCount}</div>
+                    <div class="stat-label">Réussis</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${errorCount}</div>
+                    <div class="stat-label">Erreurs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100)}%</div>
+                    <div class="stat-label">Taux de réussite</div>
+                </div>
+            `;
+        }
 
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'routes.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
+        function downloadResults() {
+            if (processedData.length === 0) {
+                alert('Aucune donnée à télécharger');
+                return;
+            }
+
+            // Création du CSV
+            const headers = 'id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error\n';
+            const csvContent = headers + processedData.map(row => {
+                return `"${row.id}",${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon},"${row.distance_km}","${row.duration_minutes}","${row.status}","${row.error || ''}"`;
+            }).join('\n');
+
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadCSV(csvContent, `itineraires_velo_${timestamp}.csv`);
         }
     </script>
 </body>
