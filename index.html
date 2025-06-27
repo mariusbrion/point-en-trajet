@@ -287,6 +287,14 @@
                     <option value="foot-walking">Marche (test)</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="searchRadius">Rayon de recherche (mètres) :</label>
+                <select id="searchRadius">
+                    <option value="1000">1000m (recommandé)</option>
+                    <option value="2000">2000m</option>
+                    <option value="5000">5000m</option>
+                </select>
+            </div>
         </div>
 
         <div class="form-section">
@@ -406,49 +414,69 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         async function calculateRoute(startLat, startLon, endLat, endLon, apiKey, profile) {
-            // URL corrigée pour l'API OpenRouteService
-            const url = `https://api.openrouteservice.org/v2/directions/${profile}/geojson`;
+            // URL simplifiée pour l'API OpenRouteService
+            const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
             
             const requestBody = {
                 coordinates: [[startLon, startLat], [endLon, endLat]],
-                instructions: false
+                radiuses: [1000, 1000], // Augmenter le rayon de recherche à 1000m
+                format: "json",
+                instructions: false,
+                geometry: false,
+                elevation: false
             };
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
+                        'Authorization': apiKey, // Retour au format simple
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(requestBody)
                 });
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('API Response Error:', errorText);
+                    console.error('API Response Error:', response.status, errorText);
+                    
+                    // Parsing de l'erreur pour un message plus clair
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        if (errorData.error) {
+                            if (errorData.error.code === 2010) {
+                                throw new Error(`Point non routable (rayon de recherche insuffisant)`);
+                            } else if (errorData.error.code === 2099) {
+                                throw new Error(`Erreur API - Vérifiez votre clé API`);
+                            } else {
+                                throw new Error(`Erreur API ${errorData.error.code}: ${errorData.error.message || 'Erreur inconnue'}`);
+                            }
+                        }
+                    } catch (parseError) {
+                        // Si le parsing échoue, utiliser le message d'origine
+                    }
+                    
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const data = await response.json();
                 
-                if (data.features && data.features.length > 0) {
-                    const route = data.features[0];
-                    const properties = route.properties;
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
                     return {
-                        distance: (properties.summary.distance / 1000).toFixed(2), // km
-                        duration: Math.round(properties.summary.duration / 60), // minutes
-                        geometry: route.geometry
+                        distance: (route.summary.distance / 1000).toFixed(2), // km
+                        duration: Math.round(route.summary.duration / 60), // minutes
+                        geometry: route.geometry || 'N/A'
                     };
                 } else {
                     throw new Error('Aucun itinéraire trouvé');
                 }
             } catch (error) {
-                if (error.message.includes('HTTP')) {
+                if (error.message.includes('HTTP') || error.message.includes('Point non routable') || error.message.includes('Erreur API')) {
                     throw error;
                 }
-                throw new Error(`Erreur API: ${error.message}`);
+                throw new Error(`Erreur réseau: ${error.message}`);
             }
         }
 
@@ -456,6 +484,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             const apiKey = document.getElementById('apiKey').value.trim();
             const profile = document.getElementById('profile').value;
             const csvData = document.getElementById('csvData').value.trim();
+            const searchRadius = parseInt(document.getElementById('searchRadius').value);
 
             if (!apiKey) {
                 alert('Veuillez saisir votre clé API OpenRouteService');
@@ -490,22 +519,22 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             
             resultsList.innerHTML = '';
 
-            // Traitement par lot avec limitation de débit
-            const batchSize = 5; // Limiter à 5 requêtes simultanées
-            const delayBetweenBatches = 1000; // 1 seconde entre les lots
+            // Traitement par lot avec limitation de débit plus stricte
+            const batchSize = 3; // Réduire à 3 requêtes simultanées
+            const delayBetweenBatches = 2000; // 2 secondes entre les lots
 
             for (let i = 0; i < inputData.length; i += batchSize) {
                 const batch = inputData.slice(i, i + batchSize);
                 const promises = batch.map(async (item, index) => {
                     const globalIndex = i + index;
                     try {
-                        // Petit délai pour éviter la surcharge
-                        await new Promise(resolve => setTimeout(resolve, index * 200));
+                        // Délai plus long pour éviter la surcharge
+                        await new Promise(resolve => setTimeout(resolve, index * 500));
                         
-                        const route = await calculateRoute(
+                        const route = await calculateRouteWithRadius(
                             item.start_lat, item.start_lon,
                             item.end_lat, item.end_lon,
-                            apiKey, profile
+                            apiKey, profile, searchRadius
                         );
 
                         const result = {
@@ -563,7 +592,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
                 await Promise.all(promises);
                 
-                // Délai entre les lots
+                // Délai plus long entre les lots
                 if (i + batchSize < inputData.length) {
                     await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
                 }
@@ -572,6 +601,73 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             // Finalisation
             progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
             document.getElementById('downloadBtn').style.display = 'inline-block';
+        }
+
+        async function calculateRouteWithRadius(startLat, startLon, endLat, endLon, apiKey, profile, radius) {
+            // URL simplifiée pour l'API OpenRouteService
+            const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
+            
+            const requestBody = {
+                coordinates: [[startLon, startLat], [endLon, endLat]],
+                radiuses: [radius, radius], // Utiliser le rayon configuré
+                format: "json",
+                instructions: false,
+                geometry: false,
+                elevation: false
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': apiKey, // Format simple
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Response Error:', response.status, errorText);
+                    
+                    // Parsing de l'erreur pour un message plus clair
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        if (errorData.error) {
+                            if (errorData.error.code === 2010) {
+                                throw new Error(`Point non routable (rayon ${radius}m insuffisant)`);
+                            } else if (errorData.error.code === 2099) {
+                                throw new Error(`Erreur API - Vérifiez votre clé API`);
+                            } else {
+                                throw new Error(`Erreur API ${errorData.error.code}: ${errorData.error.message || 'Erreur inconnue'}`);
+                            }
+                        }
+                    } catch (parseError) {
+                        // Si le parsing échoue, utiliser le message d'origine
+                    }
+                    
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    return {
+                        distance: (route.summary.distance / 1000).toFixed(2), // km
+                        duration: Math.round(route.summary.duration / 60), // minutes
+                        geometry: route.geometry || 'N/A'
+                    };
+                } else {
+                    throw new Error('Aucun itinéraire trouvé');
+                }
+            } catch (error) {
+                if (error.message.includes('HTTP') || error.message.includes('Point non routable') || error.message.includes('Erreur API')) {
+                    throw error;
+                }
+                throw new Error(`Erreur réseau: ${error.message}`);
+            }
         }
 
         function updateStats() {
