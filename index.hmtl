@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Générer des trajets à vélo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #map { height: 500px; width: 100%; }
+        input, button { margin: 10px; padding: 8px; }
+        #status { color: red; }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <h2>Générer des trajets à vélo pour Heatmap</h2>
+    <div>
+        <label>Charger le fichier CSV (id,start_lat,start_lon,end_lat,end_lon):</label>
+        <input type="file" id="csvFile" accept=".csv">
+    </div>
+    <button onclick="processTrajets()">Générer les trajets</button>
+    <button onclick="downloadCSV()" disabled id="downloadBtn">Télécharger CSV</button>
+    <div id="status"></div>
+    <div id="map"></div>
+
+    <script>
+        // Initialiser la carte Leaflet
+        const map = L.map('map').setView([48.8566, 2.3522], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        const apiKey = '5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e'; // Votre clé API ORS
+        let routes = []; // Stocker les coordonnées des trajets
+        let processedCount = 0;
+
+        async function processTrajets() {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files.length) {
+                document.getElementById('status').innerText = 'Veuillez charger un fichier CSV !';
+                return;
+            }
+
+            document.getElementById('status').innerText = 'Traitement en cours...';
+            const file = fileInput.files[0];
+            routes = [];
+            processedCount = 0;
+
+            Papa.parse(file, {
+                header: true,
+                complete: async function(results) {
+                    const trajets = results.data;
+                    if (!trajets[0]?.start_lat || !trajets[0]?.start_lon || !trajets[0]?.end_lat || !trajets[0]?.end_lon) {
+                        document.getElementById('status').innerText = 'Erreur : Le CSV doit contenir start_lat, start_lon, end_lat, end_lon';
+                        return;
+                    }
+
+                    for (const trajet of trajets) {
+                        if (processedCount >= 2000) { // Limite gratuite ORS (ajustez selon votre plan)
+                            document.getElementById('status').innerText = 'Limite API atteinte (2000 requêtes).';
+                            break;
+                        }
+
+                        try {
+                            const url = `https://api.openrouteservice.org/v2/directions/cycling-regular?api_key=${apiKey}&start=${trajet.start_lon},${trajet.start_lat}&end=${trajet.end_lon},${trajet.end_lat}`;
+                            const response = await fetch(url);
+                            const data = await response.json();
+                            const coordinates = data.features[0].geometry.coordinates;
+
+                            // Afficher le trajet sur la carte
+                            L.polyline(coordinates.map(coord => [coord[1], coord[0]]), { color: 'blue', weight: 2 }).addTo(map);
+
+                            // Stocker les coordonnées avec l'ID du trajet
+                            routes.push({
+                                id: trajet.id || processedCount,
+                                coordinates: coordinates.map(coord => ({ lat: coord[1], lon: coord[0] }))
+                            });
+
+                            processedCount++;
+                            document.getElementById('status').innerText = `Trajets traités : ${processedCount}/${trajets.length}`;
+                        } catch (error) {
+                            console.error(`Erreur pour le trajet ${trajet.id}:`, error);
+                        }
+
+                        // Attendre 1 seconde pour respecter les limites de l'API (éviter les erreurs de quota)
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+
+                    document.getElementById('downloadBtn').disabled = false;
+                    document.getElementById('status').innerText = `Traitement terminé ! ${processedCount} trajets générés.`;
+                    map.fitBounds(L.featureGroup(routes.map(r => L.polyline(r.coordinates.map(c => [c.lat, c.lon]))).getBounds());
+                }
+            });
+        }
+
+        function downloadCSV() {
+            let csvContent = "route_id,latitude,longitude\n";
+            routes.forEach(route => {
+                route.coordinates.forEach(coord => {
+                    csvContent += `${route.id},${coord.lat},${coord.lon}\n`;
+                });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'routes.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
