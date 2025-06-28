@@ -42,44 +42,6 @@
             color: #666;
             font-size: 1.1em;
         }
-        .quota-info {
-            background: rgba(255, 193, 7, 0.15);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .quota-info h4 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-        .quota-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .quota-stat {
-            background: rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .quota-stat .value {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .quota-stat .label {
-            font-size: 0.9em;
-            color: #666;
-        }
-        .quota-warning {
-            background: rgba(220, 53, 69, 0.15);
-            border-color: rgba(220, 53, 69, 0.3);
-            color: #721c24;
-        }
         .form-section {
             margin-bottom: 30px;
             padding: 25px;
@@ -218,12 +180,6 @@
             color: #333;
             font-weight: 500;
         }
-        .timing-info {
-            text-align: center;
-            margin-top: 5px;
-            color: #666;
-            font-size: 0.9em;
-        }
         .results {
             margin-top: 30px;
             padding: 25px;
@@ -280,6 +236,13 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+        .api-warning {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -290,10 +253,6 @@
             }
             
             .stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .quota-stats {
                 grid-template-columns: 1fr;
             }
             
@@ -314,29 +273,6 @@
             <h1>🚴‍♂️ Calculateur d'Itinéraires Vélo</h1>
             <p>Calcul d'itinéraires vélo avec OpenRouteService - Traitement par lot avec export GeoJSON</p>
         </div>
-
-        <div class="quota-info" id="quotaInfo">
-            <h4>📊 Utilisation des quotas API</h4>
-            <div class="quota-stats">
-                <div class="quota-stat">
-                    <div class="value" id="dailyUsage">0</div>
-                    <div class="label">Utilisées aujourd'hui</div>
-                </div>
-                <div class="quota-stat">
-                    <div class="value" id="dailyRemaining">2000</div>
-                    <div class="label">Restantes (jour)</div>
-                </div>
-                <div class="quota-stat">
-                    <div class="value" id="dailyPercentage">0%</div>
-                    <div class="label">Pourcentage utilisé</div>
-                </div>
-                <div class="quota-stat">
-                    <div class="value" id="nextReset">--:--</div>
-                    <div class="label">Prochaine réinitialisation</div>
-                </div>
-            </div>
-        </div>
-
         <div class="form-section">
             <h3>📍 Configuration</h3>
             <div class="form-group">
@@ -381,15 +317,15 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             </div>
         </div>
         <div class="form-section">
-            <button class="btn btn-primary" onclick="processRoutes()" id="processBtn">🚀 Calculer les itinéraires</button>
+            <button class="btn btn-primary" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
             <button class="btn btn-secondary" onclick="downloadSample()">📥 Télécharger exemple CSV</button>
+            <div class="api-warning" id="apiWarning"></div>
         </div>
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <div class="progress-text" id="progressText">Traitement en cours...</div>
-            <div class="timing-info" id="timingInfo">Temps estimé: calculating...</div>
         </div>
         <div class="results" id="results" style="display: none;">
             <h3>📊 Résultats</h3>
@@ -409,72 +345,62 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         </div>
     </div>
     <script>
+        // Variables globales
         let processedData = [];
         let totalRoutes = 0;
         let successCount = 0;
         let errorCount = 0;
-        let isProcessing = false;
+        
+        // Compteur de requêtes API quotidiennes
+        let dailyApiCounter = 0;
+        let lastApiCallDate = new Date().toDateString();
+        
+        // Délai minimum entre les requêtes API (1.6 secondes)
+        const API_DELAY_MS = 1600;
+        let lastApiCallTime = 0;
 
-        // Constantes pour les quotas
-        const DAILY_QUOTA = 2000;
-        const REQUESTS_PER_MINUTE = 40;
-        const REQUEST_INTERVAL = 1600; // 1.6 secondes en millisecondes
-
-        // Gestion des quotas
-        function initQuotaSystem() {
+        // Fonction pour mettre à jour le compteur API
+        function updateApiCounter() {
             const today = new Date().toDateString();
-            const storedDate = localStorage.getItem('quotaDate');
             
-            if (storedDate !== today) {
-                // Nouveau jour, réinitialiser les compteurs
-                localStorage.setItem('quotaDate', today);
-                localStorage.setItem('dailyUsage', '0');
+            // Réinitialiser le compteur si c'est un nouveau jour
+            if (today !== lastApiCallDate) {
+                dailyApiCounter = 0;
+                lastApiCallDate = today;
+                document.getElementById('apiWarning').style.display = 'none';
             }
-        }
-
-        function getDailyUsage() {
-            return parseInt(localStorage.getItem('dailyUsage') || '0');
-        }
-
-        function incrementDailyUsage() {
-            const current = getDailyUsage();
-            const newUsage = current + 1;
-            localStorage.setItem('dailyUsage', newUsage.toString());
-            updateQuotaDisplay();
-            return newUsage;
-        }
-
-        function updateQuotaDisplay() {
-            const dailyUsage = getDailyUsage();
-            const dailyRemaining = DAILY_QUOTA - dailyUsage;
-            const dailyPercentage = Math.round((dailyUsage / DAILY_QUOTA) * 100);
             
-            document.getElementById('dailyUsage').textContent = dailyUsage;
-            document.getElementById('dailyRemaining').textContent = dailyRemaining;
-            document.getElementById('dailyPercentage').textContent = dailyPercentage + '%';
+            // Incrémenter le compteur
+            dailyApiCounter++;
             
-            // Calculer l'heure de la prochaine réinitialisation (minuit)
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            const timeUntilReset = tomorrow.getTime() - now.getTime();
-            const hoursUntilReset = Math.floor(timeUntilReset / (1000 * 60 * 60));
-            const minutesUntilReset = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
-            document.getElementById('nextReset').textContent = `${hoursUntilReset}h ${minutesUntilReset}m`;
-            
-            // Changer la couleur si on approche de la limite
-            const quotaInfo = document.getElementById('quotaInfo');
-            if (dailyPercentage >= 90) {
-                quotaInfo.className = 'quota-info quota-warning';
-            } else {
-                quotaInfo.className = 'quota-info';
+            // Afficher un avertissement si on approche des limites
+            const warningElement = document.getElementById('apiWarning');
+            if (dailyApiCounter >= 1900) {
+                warningElement.textContent = `ATTENTION : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui. La limite quotidienne sera bientôt atteinte.`;
+                warningElement.style.display = 'block';
+            } else if (dailyApiCounter >= 1800) {
+                warningElement.textContent = `Attention : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui`;
+                warningElement.style.display = 'block';
+            } else if (dailyApiCounter >= 1700) {
+                warningElement.textContent = `Information : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui`;
+                warningElement.style.display = 'block';
             }
+            
+            // Mettre à jour l'affichage du compteur
+            updateStats();
         }
 
-        function canMakeRequest() {
-            const dailyUsage = getDailyUsage();
-            return dailyUsage < DAILY_QUOTA;
+        // Fonction pour respecter le délai entre les requêtes API
+        async function enforceApiRateLimit() {
+            const now = Date.now();
+            const timeSinceLastCall = now - lastApiCallTime;
+            
+            if (timeSinceLastCall < API_DELAY_MS) {
+                const delay = API_DELAY_MS - timeSinceLastCall;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+            
+            lastApiCallTime = Date.now();
         }
 
         function downloadSample() {
@@ -604,6 +530,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         async function calculateRouteWithRadius(startLat, startLon, endLat, endLon, apiKey, profile, radius) {
+            // Appliquer le rate limiting
+            await enforceApiRateLimit();
+            
             const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
             
             const requestBody = {
@@ -625,6 +554,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     },
                     body: JSON.stringify(requestBody)
                 });
+
+                // Mettre à jour le compteur API après chaque appel
+                updateApiCounter();
 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -650,9 +582,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
                 const data = await response.json();
                 
-                // Incrémenter le compteur de quota SEULEMENT si la requête a réussi
-                incrementDailyUsage();
-                
                 if (data.routes && data.routes.length > 0) {
                     const route = data.routes[0];
                     return {
@@ -672,11 +601,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         async function processRoutes() {
-            if (isProcessing) {
-                alert('Un traitement est déjà en cours. Veuillez patienter.');
-                return;
-            }
-
             const apiKey = document.getElementById('apiKey').value.trim();
             const profile = document.getElementById('profile').value;
             const csvData = document.getElementById('csvData').value.trim();
@@ -698,38 +622,11 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Vérifier si on peut faire toutes les requêtes
-            const dailyUsage = getDailyUsage();
-            const requestsNeeded = inputData.length;
-            const remainingQuota = DAILY_QUOTA - dailyUsage;
-
-            if (requestsNeeded > remainingQuota) {
-                alert(`Erreur: Vous avez besoin de ${requestsNeeded} requêtes mais il ne vous reste que ${remainingQuota} requêtes pour aujourd'hui. Quota quotidien: ${DAILY_QUOTA}`);
-                return;
-            }
-
-            // Estimation du temps
-            const estimatedTimeMinutes = Math.ceil((requestsNeeded * REQUEST_INTERVAL) / (1000 * 60));
-            const confirmMessage = `Vous allez utiliser ${requestsNeeded} requêtes sur votre quota quotidien de ${DAILY_QUOTA}.
-Temps estimé: ${estimatedTimeMinutes} minutes.
-Voulez-vous continuer?`;
-
-            if (!confirm(confirmMessage)) {
-                return;
-            }
-
-            isProcessing = true;
-            
             // Réinitialisation
             processedData = [];
             totalRoutes = inputData.length;
             successCount = 0;
             errorCount = 0;
-
-            // Désactiver le bouton
-            const processBtn = document.getElementById('processBtn');
-            processBtn.disabled = true;
-            processBtn.textContent = '⏳ Traitement en cours...';
 
             // Affichage des éléments de progression
             document.getElementById('progressContainer').style.display = 'block';
@@ -740,23 +637,14 @@ Voulez-vous continuer?`;
 
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
-            const timingInfo = document.getElementById('timingInfo');
             const resultsList = document.getElementById('resultsList');
             
             resultsList.innerHTML = '';
 
-            // Traitement séquentiel avec délai de 1.6 secondes entre chaque requête
-            const startTime = Date.now();
-            
+            // Traitement séquentiel avec délai entre chaque requête
             for (let i = 0; i < inputData.length; i++) {
                 const item = inputData[i];
-                
                 try {
-                    // Vérifier qu'on peut encore faire une requête
-                    if (!canMakeRequest()) {
-                        throw new Error('Quota quotidien atteint');
-                    }
-
                     const route = await calculateRouteWithRadius(
                         item.start_lat, item.start_lon,
                         item.end_lat, item.end_lon,
@@ -768,4 +656,251 @@ Voulez-vous continuer?`;
                         start_lat: item.start_lat,
                         start_lon: item.start_lon,
                         end_lat: item.end_lat,
-                        end_lon:
+                        end_lon: item.end_lon,
+                        distance_km: route.distance,
+                        duration_minutes: route.duration,
+                        geometry: route.geometry,
+                        status: 'success'
+                    };
+
+                    processedData.push(result);
+                    successCount++;
+
+                    // Mise à jour de l'affichage
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item success';
+                    resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
+                    resultsList.appendChild(resultDiv);
+
+                } catch (error) {
+                    const result = {
+                        id: item.id,
+                        start_lat: item.start_lat,
+                        start_lon: item.start_lon,
+                        end_lat: item.end_lat,
+                        end_lon: item.end_lon,
+                        distance_km: 'ERREUR',
+                        duration_minutes: 'ERREUR',
+                        geometry: null,
+                        status: 'error',
+                        error: error.message
+                    };
+
+                    processedData.push(result);
+                    errorCount++;
+
+                    // Mise à jour de l'affichage
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item error';
+                    resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
+                    resultsList.appendChild(resultDiv);
+                }
+
+                // Mise à jour de la barre de progression
+                const progress = ((i + 1) / totalRoutes) * 100;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `Traitement: ${i + 1}/${totalRoutes}`;
+                
+                updateStats();
+            }
+
+            // Finalisation
+            progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            
+            // Afficher les boutons GeoJSON seulement s'il y a des trajets réussis
+            if (successCount > 0) {
+                document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
+                document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
+            }
+        }
+
+        function updateStats() {
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalRoutes}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${successCount}</div>
+                    <div class="stat-label">Réussis</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${errorCount}</div>
+                    <div class="stat-label">Erreurs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100)}%</div>
+                    <div class="stat-label">Taux de réussite</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${dailyApiCounter}</div>
+                    <div class="stat-label">Requêtes API (aujourd'hui)</div>
+                </div>
+            `;
+        }
+
+        function downloadResults() {
+            if (processedData.length === 0) {
+                alert('Aucune donnée à télécharger');
+                return;
+            }
+
+            // Création du CSV
+            const headers = 'id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error\n';
+            const csvContent = headers + processedData.map(row => {
+                return `"${row.id}",${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon},"${row.distance_km}","${row.duration_minutes}","${row.status}","${row.error || ''}"`;
+            }).join('\n');
+
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadCSV(csvContent, `itineraires_velo_${timestamp}.csv`);
+        }
+
+        function downloadGeoJSON() {
+            if (processedData.length === 0) {
+                alert('Aucune donnée à télécharger');
+                return;
+            }
+
+            // Filtrer uniquement les trajets réussis avec géométrie
+            const successfulRoutes = processedData.filter(route => 
+                route.status === 'success' && route.geometry
+            );
+
+            if (successfulRoutes.length === 0) {
+                alert('Aucun trajet réussi avec géométrie à exporter');
+                return;
+            }
+
+            // Créer le GeoJSON
+            const geojson = {
+                type: "FeatureCollection",
+                features: []
+            };
+
+            successfulRoutes.forEach(route => {
+                try {
+                    // Décoder la polyline si c'est une chaîne
+                    let coordinates;
+                    if (typeof route.geometry === 'string') {
+                        coordinates = decodePolyline(route.geometry);
+                    } else if (route.geometry && route.geometry.coordinates) {
+                        coordinates = route.geometry.coordinates;
+                    } else {
+                        console.warn(`Géométrie invalide pour ${route.id}`);
+                        return;
+                    }
+
+                    const feature = {
+                        type: "Feature",
+                        properties: {
+                            id: route.id,
+                            distance_km: parseFloat(route.distance_km),
+                            duration_minutes: parseInt(route.duration_minutes),
+                            start_lat: route.start_lat,
+                            start_lon: route.start_lon,
+                            end_lat: route.end_lat,
+                            end_lon: route.end_lon,
+                            profile: document.getElementById('profile').value
+                        },
+                        geometry: {
+                            type: "LineString",
+                            coordinates: coordinates
+                        }
+                    };
+
+                    geojson.features.push(feature);
+                } catch (error) {
+                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
+                }
+            });
+
+            // Télécharger le fichier GeoJSON
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
+
+            // Afficher un message de confirmation
+            alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
+        }
+
+        function downloadGeoJSONPoints() {
+            if (processedData.length === 0) {
+                alert('Aucune donnée à télécharger');
+                return;
+            }
+
+            // Filtrer uniquement les trajets réussis avec géométrie
+            const successfulRoutes = processedData.filter(route => 
+                route.status === 'success' && route.geometry
+            );
+
+            if (successfulRoutes.length === 0) {
+                alert('Aucun trajet réussi avec géométrie à exporter');
+                return;
+            }
+
+            // Créer le GeoJSON avec tous les points des itinéraires
+            const geojson = {
+                type: "FeatureCollection",
+                features: []
+            };
+
+            successfulRoutes.forEach(route => {
+                try {
+                    // Décoder la polyline ou utiliser les coordonnées directement
+                    let coordinates;
+                    if (typeof route.geometry === 'string') {
+                        coordinates = decodePolyline(route.geometry);
+                    } else if (route.geometry && route.geometry.coordinates) {
+                        coordinates = route.geometry.coordinates;
+                    } else {
+                        console.warn(`Géométrie invalide pour ${route.id}`);
+                        return;
+                    }
+
+                    // Ajouter chaque point de la ligne comme un point individuel
+                    coordinates.forEach((point, index) => {
+                        const [longitude, latitude] = point; // Extraction des coordonnées
+                        
+                        const pointFeature = {
+                            type: "Feature",
+                            properties: {
+                                id: route.id,
+                                latitude: latitude,
+                                longitude: longitude,
+                                point_index: index,
+                                total_points: coordinates.length,
+                                distance_km: parseFloat(route.distance_km),
+                                duration_minutes: parseInt(route.duration_minutes),
+                                profile: document.getElementById('profile').value,
+                                point_type: index === 0 ? 'start' : 
+                                          (index === coordinates.length - 1 ? 'end' : 'intermediate')
+                            },
+                            geometry: {
+                                type: "Point",
+                                coordinates: [longitude, latitude]
+                            }
+                        };
+
+                        geojson.features.push(pointFeature);
+                    });
+
+                } catch (error) {
+                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
+                }
+            });
+
+            // Télécharger le fichier GeoJSON
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
+
+            // Afficher un message de confirmation
+            alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
+        }
+
+        // Initialiser le compteur API au chargement de la page
+        updateStats();
+    </script>
+</body>
+</html>
