@@ -10,14 +10,12 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -27,12 +25,10 @@
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
-
         .header {
             text-align: center;
             margin-bottom: 30px;
         }
-
         .header h1 {
             color: #333;
             font-size: 2.5em;
@@ -42,12 +38,10 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
         .header p {
             color: #666;
             font-size: 1.1em;
         }
-
         .form-section {
             margin-bottom: 30px;
             padding: 25px;
@@ -55,24 +49,20 @@
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-
         .form-section h3 {
             color: #333;
             margin-bottom: 15px;
             font-size: 1.3em;
         }
-
         .form-group {
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             margin-bottom: 8px;
             color: #333;
             font-weight: 500;
         }
-
         input, textarea, select {
             width: 100%;
             padding: 12px;
@@ -82,30 +72,25 @@
             transition: all 0.3s ease;
             background: rgba(255, 255, 255, 0.8);
         }
-
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-
         textarea {
             resize: vertical;
             min-height: 120px;
             font-family: monospace;
         }
-
         .file-input-wrapper {
             position: relative;
             display: inline-block;
             width: 100%;
         }
-
         .file-input {
             position: absolute;
             left: -9999px;
         }
-
         .file-input-label {
             display: block;
             padding: 12px;
@@ -117,12 +102,10 @@
             transition: all 0.3s ease;
             font-weight: 500;
         }
-
         .file-input-label:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
-
         .btn {
             padding: 15px 30px;
             border: none;
@@ -134,60 +117,49 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .btn-primary {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
         }
-
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
-
         .btn-primary:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
-
         .btn-secondary {
             background: #6c757d;
             color: white;
             margin-left: 10px;
         }
-
         .btn-secondary:hover {
             background: #5a6268;
             transform: translateY(-2px);
         }
-
         .btn-geojson {
             background: linear-gradient(45deg, #28a745, #20c997);
             color: white;
             margin-left: 10px;
         }
-
         .btn-geojson:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
         }
-
         .btn-points {
             background: linear-gradient(45deg, #fd7e14, #ffc107);
             color: white;
             margin-left: 10px;
         }
-
         .btn-points:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(253, 126, 20, 0.3);
         }
-
         .progress-container {
             display: none;
             margin: 20px 0;
         }
-
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -195,7 +167,6 @@
             border-radius: 10px;
             overflow: hidden;
         }
-
         .progress-fill {
             height: 100%;
             background: linear-gradient(45deg, #667eea, #764ba2);
@@ -203,14 +174,12 @@
             transition: width 0.3s ease;
             border-radius: 10px;
         }
-
         .progress-text {
             text-align: center;
             margin-top: 10px;
             color: #333;
             font-weight: 500;
         }
-
         .results {
             margin-top: 30px;
             padding: 25px;
@@ -218,12 +187,10 @@
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-
         .results h3 {
             color: #333;
             margin-bottom: 15px;
         }
-
         .result-item {
             padding: 10px;
             background: rgba(255, 255, 255, 0.7);
@@ -231,26 +198,22 @@
             border-radius: 8px;
             border-left: 4px solid #667eea;
         }
-
         .error {
             background: rgba(220, 53, 69, 0.1);
             border-left-color: #dc3545;
             color: #721c24;
         }
-
         .success {
             background: rgba(40, 167, 69, 0.1);
             border-left-color: #28a745;
             color: #155724;
         }
-
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
-
         .stat-card {
             background: rgba(255, 255, 255, 0.7);
             padding: 20px;
@@ -258,25 +221,21 @@
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-
         .stat-value {
             font-size: 2em;
             font-weight: bold;
             color: #667eea;
         }
-
         .stat-label {
             color: #666;
             margin-top: 5px;
         }
-
         .download-buttons {
             margin-top: 20px;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
         }
-
         .api-warning {
             color: #dc3545;
             font-weight: bold;
@@ -284,50 +243,23 @@
             text-align: center;
             display: none;
         }
-
-        .global-counter {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-        }
-
-        .global-counter h4 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-
-        .global-counter-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .global-counter-status {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-        }
-
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
-
+            
             .header h1 {
                 font-size: 2em;
             }
-
+            
             .stats {
                 grid-template-columns: 1fr;
             }
-
+            
             .download-buttons {
                 flex-direction: column;
             }
-
+            
             .btn {
                 margin-left: 0 !important;
                 margin-bottom: 10px;
@@ -341,13 +273,6 @@
             <h1>🚴‍♂️ Calculateur d'Itinéraires Vélo</h1>
             <p>Calcul d'itinéraires vélo avec OpenRouteService - Traitement par lot avec export GeoJSON</p>
         </div>
-
-        <div class="global-counter">
-            <h4>📊 Compteur Global Quotidien</h4>
-            <div class="global-counter-value" id="globalCounterValue">Chargement...</div>
-            <div class="global-counter-status" id="globalCounterStatus">Synchronisation avec Google Sheets...</div>
-        </div>
-
         <div class="form-section">
             <h3>📍 Configuration</h3>
             <div class="form-group">
@@ -374,7 +299,6 @@
                 </select>
             </div>
         </div>
-
         <div class="form-section">
             <h3>📂 Données d'entrée</h3>
             <div class="form-group">
@@ -388,23 +312,21 @@
                 <label for="csvData">Option 2 : Coller les données CSV :</label>
                 <textarea id="csvData" placeholder="Collez vos données CSV ici...
 Format : id,start_lat,start_lon,end_lat,end_lon
-Exemple : employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
+Exemple :
+employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             </div>
         </div>
-
         <div class="form-section">
             <button class="btn btn-primary" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
             <button class="btn btn-secondary" onclick="downloadSample()">📥 Télécharger exemple CSV</button>
             <div class="api-warning" id="apiWarning"></div>
         </div>
-
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <div class="progress-text" id="progressText">Traitement en cours...</div>
         </div>
-
         <div class="results" id="results" style="display: none;">
             <h3>📊 Résultats</h3>
             <div class="stats" id="stats"></div>
@@ -422,93 +344,22 @@ Exemple : employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"><
             </div>
         </div>
     </div>
-
     <script>
         // Variables globales
         let processedData = [];
         let totalRoutes = 0;
         let successCount = 0;
         let errorCount = 0;
-
+        
         // Compteur de requêtes API quotidiennes
         let dailyApiCounter = 0;
         let lastApiCallDate = new Date().toDateString();
-
+        
         // Délai minimum entre les requêtes API (1.6 secondes)
         const API_DELAY_MS = 1600;
         let lastApiCallTime = 0;
 
-        // URL du script Google Apps Script
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVozswQD9xv4pnlOa4ShbOo96WoTOyen3H8nrlZsfkTyOc_appYbxLisTyTyFg/exec"; // Mis à jour avec le bon URL
-
-        // Variables pour le compteur global
-        let globalDailyCounter = 0;
-        let globalCounterLoaded = false;
-
-        // Fonction pour charger le compteur global depuis Google Sheets
-        async function loadGlobalCounter() {
-            const today = new Date().toISOString().split('T')[0];
-            try {
-                // Nous utilisons une requête JSONP ou un proxy pour contourner CORS si nécessaire
-                // Pour cet exemple, nous allons simuler la récupération asynchrone
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=get&date=${today}`);
-                const data = await response.json();
-                globalDailyCounter = data.count || 0;
-                globalCounterLoaded = true;
-                updateGlobalCounterDisplay();
-            } catch (error) {
-                console.log("Erreur de chargement du compteur global, utilisation du mode local:", error);
-                globalCounterLoaded = true;
-                updateGlobalCounterDisplay();
-            }
-        }
-
-        // Fonction pour mettre à jour le compteur global
-        async function updateGlobalCounter() {
-            const today = new Date().toISOString().split('T')[0];
-            try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=increment&date=${today}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({}) // Corps vide pour un simple incrément
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    globalDailyCounter = data.newCount;
-                    updateGlobalCounterDisplay();
-                    console.log("Compteur global mis à jour");
-                } else {
-                    console.log("Échec de la mise à jour du compteur global:", data.message);
-                    globalDailyCounter++; // Fallback au compteur local
-                    updateGlobalCounterDisplay();
-                }
-            } catch (error) {
-                console.log("Erreur de mise à jour du compteur global:", error);
-                // Continuer avec le compteur local
-                globalDailyCounter++;
-                updateGlobalCounterDisplay();
-            }
-        }
-
-        // Fonction pour afficher le compteur global
-        function updateGlobalCounterDisplay() {
-            const valueElement = document.getElementById('globalCounterValue');
-            const statusElement = document.getElementById('globalCounterStatus');
-            
-            if (globalCounterLoaded) {
-                valueElement.textContent = `${globalDailyCounter + dailyApiCounter} requêtes aujourd'hui`;
-                statusElement.textContent = "Synchronisé avec Google Sheets";
-                statusElement.style.color = "#28a745";
-            } else {
-                valueElement.textContent = `${dailyApiCounter} requêtes (session locale)`;
-                statusElement.textContent = "Mode local - Connexion Google Sheets en cours...";
-                statusElement.style.color = "#ffc107";
-            }
-        }
-
-        // Fonction pour mettre à jour le compteur API local
+        // Fonction pour mettre à jour le compteur API
         function updateApiCounter() {
             const today = new Date().toDateString();
             
@@ -524,32 +375,31 @@ Exemple : employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"><
             
             // Afficher un avertissement si on approche des limites
             const warningElement = document.getElementById('apiWarning');
-            const totalCount = dailyApiCounter + globalDailyCounter;
-            
-            if (totalCount >= 1900) {
-                warningElement.textContent = `ATTENTION : ${totalCount}/2000 requêtes API utilisées aujourd'hui. La limite quotidienne sera bientôt atteinte.`;
+            if (dailyApiCounter >= 1900) {
+                warningElement.textContent = `ATTENTION : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui. La limite quotidienne sera bientôt atteinte.`;
                 warningElement.style.display = 'block';
-            } else if (totalCount >= 1800) {
-                warningElement.textContent = `Attention : ${totalCount}/2000 requêtes API utilisées aujourd'hui`;
+            } else if (dailyApiCounter >= 1800) {
+                warningElement.textContent = `Attention : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui`;
                 warningElement.style.display = 'block';
-            } else if (totalCount >= 1700) {
-                warningElement.textContent = `Information : ${totalCount}/2000 requêtes API utilisées aujourd'hui`;
+            } else if (dailyApiCounter >= 1700) {
+                warningElement.textContent = `Information : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui`;
                 warningElement.style.display = 'block';
             }
             
             // Mettre à jour l'affichage du compteur
             updateStats();
-            updateGlobalCounterDisplay();
         }
 
         // Fonction pour respecter le délai entre les requêtes API
         async function enforceApiRateLimit() {
             const now = Date.now();
             const timeSinceLastCall = now - lastApiCallTime;
+            
             if (timeSinceLastCall < API_DELAY_MS) {
                 const delay = API_DELAY_MS - timeSinceLastCall;
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
+            
             lastApiCallTime = Date.now();
         }
 
@@ -560,6 +410,7 @@ employé h2,-0.5759420966,44.8124628849,-0.6031024699,44.8266054909
 employé h3,-0.5700829040,44.8121878266,-0.6031024699,44.8266054909
 employé g1,-0.5716569701,44.8292473283,-0.5579514365,44.8275367638
 employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
+            
             downloadCSV(sampleData, 'exemple_donnees.csv');
         }
 
@@ -630,16 +481,27 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     }
                 }
             }
+            
             return data;
         }
 
         function decodePolyline(str, precision = 5) {
-            let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, latitude_change, longitude_change, factor = Math.pow(10, precision);
+            let index = 0,
+                lat = 0,
+                lng = 0,
+                coordinates = [],
+                shift = 0,
+                result = 0,
+                byte = null,
+                latitude_change,
+                longitude_change,
+                factor = Math.pow(10, precision);
 
             while (index < str.length) {
                 byte = null;
                 shift = 0;
                 result = 0;
+
                 do {
                     byte = str.charCodeAt(index++) - 63;
                     result |= (byte & 0x1f) << shift;
@@ -649,6 +511,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 latitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
 
                 shift = result = 0;
+
                 do {
                     byte = str.charCodeAt(index++) - 63;
                     result |= (byte & 0x1f) << shift;
@@ -670,10 +533,8 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             // Appliquer le rate limiting
             await enforceApiRateLimit();
             
-            // Mettre à jour le compteur global
-            await updateGlobalCounter();
-            
             const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
+            
             const requestBody = {
                 coordinates: [[startLon, startLat], [endLon, endLat]],
                 radiuses: [radius, radius],
@@ -694,12 +555,13 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     body: JSON.stringify(requestBody)
                 });
 
-                // Mettre à jour le compteur API local après chaque appel
+                // Mettre à jour le compteur API après chaque appel
                 updateApiCounter();
 
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('API Response Error:', response.status, errorText);
+                    
                     try {
                         const errorData = JSON.parse(errorText);
                         if (errorData.error) {
@@ -714,10 +576,12 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     } catch (parseError) {
                         // Si le parsing échoue, utiliser le message d'origine
                     }
+                    
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const data = await response.json();
+                
                 if (data.routes && data.routes.length > 0) {
                     const route = data.routes[0];
                     return {
@@ -774,23 +638,17 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
             const resultsList = document.getElementById('resultsList');
+            
             resultsList.innerHTML = '';
 
             // Traitement séquentiel avec délai entre chaque requête
             for (let i = 0; i < inputData.length; i++) {
                 const item = inputData[i];
-                let status = 'success';
-                let errorMessage = '';
-
                 try {
                     const route = await calculateRouteWithRadius(
-                        item.start_lat,
-                        item.start_lon,
-                        item.end_lat,
-                        item.end_lon,
-                        apiKey,
-                        profile,
-                        searchRadius
+                        item.start_lat, item.start_lon,
+                        item.end_lat, item.end_lon,
+                        apiKey, profile, searchRadius
                     );
 
                     const result = {
@@ -807,199 +665,242 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
                     processedData.push(result);
                     successCount++;
-                    addResultToDisplay(result, 'success');
+
+                    // Mise à jour de l'affichage
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item success';
+                    resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
+                    resultsList.appendChild(resultDiv);
 
                 } catch (error) {
-                    status = 'error';
-                    errorMessage = error.message;
-                    errorCount++;
                     const result = {
                         id: item.id,
                         start_lat: item.start_lat,
                         start_lon: item.start_lon,
                         end_lat: item.end_lat,
                         end_lon: item.end_lon,
-                        distance_km: 'N/A',
-                        duration_minutes: 'N/A',
+                        distance_km: 'ERREUR',
+                        duration_minutes: 'ERREUR',
                         geometry: null,
                         status: 'error',
-                        error_message: errorMessage
+                        error: error.message
                     };
+
                     processedData.push(result);
-                    addResultToDisplay(result, 'error');
+                    errorCount++;
+
+                    // Mise à jour de l'affichage
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item error';
+                    resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
+                    resultsList.appendChild(resultDiv);
                 }
 
-                // Mettre à jour la progression
+                // Mise à jour de la barre de progression
                 const progress = ((i + 1) / totalRoutes) * 100;
-                progressFill.style.width = `${progress}%`;
-                progressText.textContent = `Traitement de l'itinéraire ${i + 1}/${totalRoutes} (${progress.toFixed(0)}%)`;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `Traitement: ${i + 1}/${totalRoutes}`;
+                
                 updateStats();
             }
 
-            progressText.textContent = `Traitement terminé. ${successCount} succès, ${errorCount} erreurs.`;
+            // Finalisation
+            progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
             document.getElementById('downloadBtn').style.display = 'inline-block';
-            document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
-            document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
-        }
-
-        function addResultToDisplay(result, type) {
-            const resultsList = document.getElementById('resultsList');
-            const resultItem = document.createElement('div');
-            resultItem.classList.add('result-item', type);
-            resultItem.innerHTML = `
-                <strong>ID:</strong> ${result.id}<br>
-                <strong>Départ:</strong> ${result.start_lat}, ${result.start_lon}<br>
-                <strong>Arrivée:</strong> ${result.end_lat}, ${result.end_lon}<br>
-                ${type === 'success' ? `
-                    <strong>Distance:</strong> ${result.distance_km} km<br>
-                    <strong>Durée:</strong> ${result.duration_minutes} min
-                ` : `
-                    <strong>Erreur:</strong> ${result.error_message || 'Erreur inconnue'}
-                `}
-            `;
-            resultsList.appendChild(resultItem);
-            resultsList.scrollTop = resultsList.scrollHeight; // Scroll to bottom
+            
+            // Afficher les boutons GeoJSON seulement s'il y a des trajets réussis
+            if (successCount > 0) {
+                document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
+                document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
+            }
         }
 
         function updateStats() {
             const statsDiv = document.getElementById('stats');
             statsDiv.innerHTML = `
                 <div class="stat-card">
-                    <div class="stat-value" id="totalRoutesStat">${totalRoutes}</div>
-                    <div class="stat-label">Total itinéraires</div>
+                    <div class="stat-value">${totalRoutes}</div>
+                    <div class="stat-label">Total</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="successCountStat" style="color: #28a745;">${successCount}</div>
-                    <div class="stat-label">Succès</div>
+                    <div class="stat-value">${successCount}</div>
+                    <div class="stat-label">Réussis</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="errorCountStat" style="color: #dc3545;">${errorCount}</div>
+                    <div class="stat-value">${errorCount}</div>
                     <div class="stat-label">Erreurs</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="apiCounterStat" style="color: #667eea;">${dailyApiCounter + globalDailyCounter}</div>
-                    <div class="stat-label">Requêtes API (jour)</div>
+                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100)}%</div>
+                    <div class="stat-label">Taux de réussite</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${dailyApiCounter}</div>
+                    <div class="stat-label">Requêtes API (aujourd'hui)</div>
                 </div>
             `;
         }
 
         function downloadResults() {
             if (processedData.length === 0) {
-                alert('Aucun résultat à télécharger.');
+                alert('Aucune donnée à télécharger');
                 return;
             }
 
-            let csvContent = "id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error_message\n";
-            processedData.forEach(item => {
-                csvContent += `${item.id},${item.start_lat},${item.start_lon},${item.end_lat},${item.end_lon},${item.distance_km},${item.duration_minutes},${item.status},"${item.error_message || ''}"\n`;
-            });
+            // Création du CSV
+            const headers = 'id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error\n';
+            const csvContent = headers + processedData.map(row => {
+                return `"${row.id}",${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon},"${row.distance_km}","${row.duration_minutes}","${row.status}","${row.error || ''}"`;
+            }).join('\n');
 
-            downloadCSV(csvContent, 'resultats_itineraires_velo.csv');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadCSV(csvContent, `itineraires_velo_${timestamp}.csv`);
         }
 
         function downloadGeoJSON() {
             if (processedData.length === 0) {
-                alert('Aucun résultat à télécharger.');
+                alert('Aucune donnée à télécharger');
                 return;
             }
 
-            const features = [];
-            processedData.filter(item => item.status === 'success' && item.geometry).forEach(item => {
-                const coordinates = decodePolyline(item.geometry);
-                features.push({
-                    type: "Feature",
-                    properties: {
-                        id: item.id,
-                        distance_km: item.distance_km,
-                        duration_minutes: item.duration_minutes,
-                        status: item.status
-                    },
-                    geometry: {
-                        type: "LineString",
-                        coordinates: coordinates
-                    }
-                });
-            });
+            // Filtrer uniquement les trajets réussis avec géométrie
+            const successfulRoutes = processedData.filter(route => 
+                route.status === 'success' && route.geometry
+            );
 
-            const geoJson = {
+            if (successfulRoutes.length === 0) {
+                alert('Aucun trajet réussi avec géométrie à exporter');
+                return;
+            }
+
+            // Créer le GeoJSON
+            const geojson = {
                 type: "FeatureCollection",
-                features: features
+                features: []
             };
 
-            downloadJSON(geoJson, 'itineraires_velo.geojson');
-        }
-
-        function downloadGeoJSONPoints() {
-            if (processedData.length === 0) {
-                alert('Aucun résultat à télécharger.');
-                return;
-            }
-
-            const features = [];
-            processedData.forEach(item => {
-                // Point de départ
-                features.push({
-                    type: "Feature",
-                    properties: {
-                        id: `${item.id}_start`,
-                        type: "start_point",
-                        original_id: item.id,
-                        status: item.status,
-                        error_message: item.error_message || ''
-                    },
-                    geometry: {
-                        type: "Point",
-                        coordinates: [item.start_lon, item.start_lat]
+            successfulRoutes.forEach(route => {
+                try {
+                    // Décoder la polyline si c'est une chaîne
+                    let coordinates;
+                    if (typeof route.geometry === 'string') {
+                        coordinates = decodePolyline(route.geometry);
+                    } else if (route.geometry && route.geometry.coordinates) {
+                        coordinates = route.geometry.coordinates;
+                    } else {
+                        console.warn(`Géométrie invalide pour ${route.id}`);
+                        return;
                     }
-                });
 
-                // Point d'arrivée
-                features.push({
-                    type: "Feature",
-                    properties: {
-                        id: `${item.id}_end`,
-                        type: "end_point",
-                        original_id: item.id,
-                        status: item.status,
-                        error_message: item.error_message || ''
-                    },
-                    geometry: {
-                        type: "Point",
-                        coordinates: [item.end_lon, item.end_lat]
-                    }
-                });
-
-                // Géométrie de la ligne si succès
-                if (item.status === 'success' && item.geometry) {
-                    const coordinates = decodePolyline(item.geometry);
-                    features.push({
+                    const feature = {
                         type: "Feature",
                         properties: {
-                            id: `${item.id}_route`,
-                            type: "route_line",
-                            original_id: item.id,
-                            distance_km: item.distance_km,
-                            duration_minutes: item.duration_minutes
+                            id: route.id,
+                            distance_km: parseFloat(route.distance_km),
+                            duration_minutes: parseInt(route.duration_minutes),
+                            start_lat: route.start_lat,
+                            start_lon: route.start_lon,
+                            end_lat: route.end_lat,
+                            end_lon: route.end_lon,
+                            profile: document.getElementById('profile').value
                         },
                         geometry: {
                             type: "LineString",
                             coordinates: coordinates
                         }
-                    });
+                    };
+
+                    geojson.features.push(feature);
+                } catch (error) {
+                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
                 }
             });
 
-            const geoJson = {
-                type: "FeatureCollection",
-                features: features
-            };
+            // Télécharger le fichier GeoJSON
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
 
-            downloadJSON(geoJson, 'itineraires_velo_points.geojson');
+            // Afficher un message de confirmation
+            alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
         }
 
-        // Initialiser le compteur global au chargement de la page
-        document.addEventListener('DOMContentLoaded', loadGlobalCounter);
+        function downloadGeoJSONPoints() {
+            if (processedData.length === 0) {
+                alert('Aucune donnée à télécharger');
+                return;
+            }
 
+            // Filtrer uniquement les trajets réussis avec géométrie
+            const successfulRoutes = processedData.filter(route => 
+                route.status === 'success' && route.geometry
+            );
+
+            if (successfulRoutes.length === 0) {
+                alert('Aucun trajet réussi avec géométrie à exporter');
+                return;
+            }
+
+            // Créer le GeoJSON avec tous les points des itinéraires
+            const geojson = {
+                type: "FeatureCollection",
+                features: []
+            };
+
+            successfulRoutes.forEach(route => {
+                try {
+                    // Décoder la polyline ou utiliser les coordonnées directement
+                    let coordinates;
+                    if (typeof route.geometry === 'string') {
+                        coordinates = decodePolyline(route.geometry);
+                    } else if (route.geometry && route.geometry.coordinates) {
+                        coordinates = route.geometry.coordinates;
+                    } else {
+                        console.warn(`Géométrie invalide pour ${route.id}`);
+                        return;
+                    }
+
+                    // Ajouter chaque point de la ligne comme un point individuel
+                    coordinates.forEach((point, index) => {
+                        const [longitude, latitude] = point; // Extraction des coordonnées
+                        
+                        const pointFeature = {
+                            type: "Feature",
+                            properties: {
+                                id: route.id,
+                                latitude: latitude,
+                                longitude: longitude,
+                                point_index: index,
+                                total_points: coordinates.length,
+                                distance_km: parseFloat(route.distance_km),
+                                duration_minutes: parseInt(route.duration_minutes),
+                                profile: document.getElementById('profile').value,
+                                point_type: index === 0 ? 'start' : 
+                                          (index === coordinates.length - 1 ? 'end' : 'intermediate')
+                            },
+                            geometry: {
+                                type: "Point",
+                                coordinates: [longitude, latitude]
+                            }
+                        };
+
+                        geojson.features.push(pointFeature);
+                    });
+
+                } catch (error) {
+                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
+                }
+            });
+
+            // Télécharger le fichier GeoJSON
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
+
+            // Afficher un message de confirmation
+            alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
+        }
+
+        // Initialiser le compteur API au chargement de la page
+        updateStats();
     </script>
 </body>
 </html>
