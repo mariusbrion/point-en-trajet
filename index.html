@@ -45,7 +45,7 @@
         .form-section {
             margin-bottom: 30px;
             padding: 25px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba among (255, 255, 255, 0.5);
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -171,7 +171,8 @@
             height: 100%;
             background: linear-gradient(45deg, #667eea, #764ba2);
             width: 0%;
-            transition: width _MOUSE_EVENT_3s ease;
+            transition: width 0.3s ease;
+            border-radius: 10px;
         }
         .progress-text {
             text-align: center;
@@ -207,6 +208,11 @@
             border-left-color: #28a745;
             color: #155724;
         }
+        .warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+            color: #856404;
+        }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -234,26 +240,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-        }
-        .api-counter {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            text-align: center;
-        }
-        .api-counter h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-        .api-counter.warning {
-            background: rgba(255, 193, 7, 0.2);
-            border-left: 4px solid #ffc107;
-        }
-        .api-counter.critical {
-            background: rgba(220, 53, 69, 0.2);
-            border-left: 4px solid #dc3545;
         }
         @media (max-width: 768px) {
             .container {
@@ -284,10 +270,6 @@
         <div class="header">
             <h1>🚴‍♂️ Calculateur d'Itinéraires Vélo</h1>
             <p>Calcul d'itinéraires vélo avec OpenRouteService - Traitement par lot avec export GeoJSON</p>
-        </div>
-        <div class="api-counter" id="apiCounter">
-            <h3>📊 Compteur d'utilisation API</h3>
-            <div id="apiCount">Chargement du compteur...</div>
         </div>
         <div class="form-section">
             <h3>📍 Configuration</h3>
@@ -364,56 +346,56 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         let totalRoutes = 0;
         let successCount = 0;
         let errorCount = 0;
-        const DAILY_QUOTA = 2000;
-        const API_COUNTER_URL = 'https://script.google.com/macros/s/AKfycbwVozswQD9xv4pnlOa4ShbOo96WoTOyen3H8nrlZsfkTyOc_appYbxLisTyV2yNxsTyEg/exec';
+        let dailyRequestCount = 0;
+        const DAILY_LIMIT = 2000;
 
-        async function fetchApiCount() {
-            try {
-                const response = await fetch(API_COUNTER_URL);
-                const data = await response.json();
-                updateApiCounter(data.count);
-            } catch (error) {
-                console.error('Erreur lors de la récupération du compteur:', error);
-                updateApiCounter(0, true);
-            }
+        function getCurrentDate() {
+            return new Date().toISOString().split('T')[0];
         }
 
-        function updateApiCounter(count, error = false) {
-            const apiCounter = document.getElementById('apiCounter');
-            const apiCountDisplay = document.getElementById('apiCount');
-            apiCounter.classList.remove('warning', 'critical');
-
-            if (error) {
-                apiCountDisplay.textContent = 'Erreur lors du chargement du compteur';
-                apiCounter.classList.add('error');
-                return;
+        function loadRequestCount() {
+            const stored = localStorage.getItem('apiRequestData');
+            if (stored) {
+                const { date, count } = JSON.parse(stored);
+                if (date === getCurrentDate()) {
+                    dailyRequestCount = count;
+                } else {
+                    // Reset if it's a new day
+                    dailyRequestCount = 0;
+                    localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
+                }
+            } else {
+                dailyRequestCount = 0;
+                localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
             }
-
-            const remaining = DAILY_QUOTA - count;
-            apiCountDisplay.textContent = `Requêtes utilisées aujourd'hui : ${count}/${DAILY_QUOTA} (${remaining} restantes)`;
-
-            if (count >= DAILY_QUOTA * 0.9) {
-                apiCounter.classList.add('critical');
-                alert('Attention : Vous approchez de la limite quotidienne de 2000 requêtes !');
-            } else if (count >= DAILY_QUOTA * 0.75) {
-                apiCounter.classList.add('warning');
-            }
+            updateStats();
+            checkRequestLimit();
         }
 
-        async function incrementApiCount(requestCount) {
-            try {
-                const response = await fetch(API_COUNTER_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: `count=${requestCount}`
-                });
-                const data = await response.json();
-                updateApiCounter(data.count);
-            } catch (error) {
-                console.error('Erreur lors de l\'incrémentation du compteur:', error);
-                updateApiCounter(0, true);
+        function updateRequestCounter() {
+            dailyRequestCount++;
+            localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: dailyRequestCount }));
+            updateStats();
+            checkRequestLimit();
+        }
+
+        function checkRequestLimit() {
+            const warningThreshold = DAILY_LIMIT * 0.9; // 90% of limit
+            const resultsList = document.getElementById('resultsList');
+            const existingWarning = document.querySelector('.result-item.warning');
+            if (existingWarning) existingWarning.remove();
+
+            if (dailyRequestCount >= DAILY_LIMIT) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'result-item warning';
+                warningDiv.innerHTML = `⚠️ Limite quotidienne atteinte (${dailyRequestCount}/${DAILY_LIMIT} requêtes). Veuillez réessayer demain.`;
+                resultsList.insertBefore(warningDiv, resultsList.firstChild);
+                document.getElementById('processBtn').disabled = true;
+            } else if (dailyRequestCount >= warningThreshold) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'result-item warning';
+                warningDiv.innerHTML = `⚠️ Approche de la limite quotidienne (${dailyRequestCount}/${DAILY_LIMIT} requêtes).`;
+                resultsList.insertBefore(warningDiv, resultsList.firstChild);
             }
         }
 
@@ -471,6 +453,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 const line = lines[i].trim();
                 if (line === '') continue;
                 
+                // Gestion flexible du parsing
                 const parts = line.split(',');
                 if (parts.length >= 5) {
                     data.push({
@@ -481,6 +464,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                         end_lon: parseFloat(parts[4])
                     });
                 } else {
+                    // Tentative de parsing avec espaces
                     const spaceparts = line.split(/\s+/);
                     if (spaceparts.length >= 5) {
                         data.push({
@@ -611,7 +595,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             const profile = document.getElementById('profile').value;
             const csvData = document.getElementById('csvData').value.trim();
             const searchRadius = parseInt(document.getElementById('searchRadius').value);
-            const processBtn = document.getElementById('processBtn');
 
             if (!apiKey) {
                 alert('Veuillez saisir votre clé API OpenRouteService');
@@ -629,12 +612,15 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Vérifier la limite quotidienne
-            const currentCountResponse = await fetch(API_COUNTER_URL);
-            const currentCountData = await currentCountResponse.json();
-            const remainingRequests = DAILY_QUOTA - currentCountData.count;
-            if (inputData.length > remainingRequests) {
-                alert(`Erreur : Vous ne pouvez traiter que ${remainingRequests} requêtes supplémentaires aujourd'hui.`);
+            // Check current request count before processing
+            loadRequestCount();
+            if (dailyRequestCount >= DAILY_LIMIT) {
+                alert('Limite quotidienne de requêtes API atteinte. Veuillez réessayer demain.');
+                return;
+            }
+
+            if (dailyRequestCount + inputData.length > DAILY_LIMIT) {
+                alert(`Le nombre de trajets demandés (${inputData.length}) dépasserait la limite quotidienne (${DAILY_LIMIT - dailyRequestCount} requêtes restantes). Veuillez réduire le nombre de trajets.`);
                 return;
             }
 
@@ -650,7 +636,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             document.getElementById('downloadBtn').style.display = 'none';
             document.getElementById('downloadGeoJsonBtn').style.display = 'none';
             document.getElementById('downloadGeoJsonPointsBtn').style.display = 'none';
-            processBtn.disabled = true;
 
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
@@ -658,21 +643,17 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             
             resultsList.innerHTML = '';
 
-            // Traitement avec limitation de débit (1 requête toutes les 1.6s)
-            const delayBetweenRequests = 1600; // 1.6 secondes
-
+            // Traitement séquentiel avec délai de 1.6s entre chaque requête
             for (let i = 0; i < inputData.length; i++) {
                 const item = inputData[i];
                 try {
-                    await new Promise(resolve => setTimeout(resolve, i * delayBetweenRequests));
-                    
                     const route = await calculateRouteWithRadius(
                         item.start_lat, item.start_lon,
                         item.end_lat, item.end_lon,
                         apiKey, profile, searchRadius
                     );
 
-                    await incrementApiCount(1);
+                    updateRequestCounter(); // Update counter after each API call
 
                     const result = {
                         id: item.id,
@@ -689,12 +670,15 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     processedData.push(result);
                     successCount++;
 
+                    // Mise à jour de l'affichage
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'result-item success';
                     resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
                     resultsList.appendChild(resultDiv);
 
                 } catch (error) {
+                    updateRequestCounter(); // Update counter even on error
+
                     const result = {
                         id: item.id,
                         start_lat: item.start_lat,
@@ -711,24 +695,31 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     processedData.push(result);
                     errorCount++;
 
+                    // Mise à jour de l'affichage
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'result-item error';
                     resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
                     resultsList.appendChild(resultDiv);
                 }
 
+                // Mise à jour de la barre de progression
                 const progress = ((i + 1) / totalRoutes) * 100;
                 progressFill.style.width = progress + '%';
                 progressText.textContent = `Traitement: ${i + 1}/${totalRoutes}`;
                 
                 updateStats();
+
+                // Attendre 1.6s avant la prochaine requête
+                if (i < inputData.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1600));
+                }
             }
 
             // Finalisation
-            processBtn.disabled = false;
             progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
             document.getElementById('downloadBtn').style.display = 'inline-block';
             
+            // Afficher les boutons GeoJSON seulement s'il y a des trajets réussis
             if (successCount > 0) {
                 document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
                 document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
@@ -751,8 +742,12 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     <div class="stat-label">Erreurs</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100)}%</div>
+                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100) || 0}%</div>
                     <div class="stat-label">Taux de réussite</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${dailyRequestCount}/${DAILY_LIMIT}</div>
+                    <div class="stat-label">Requêtes quotidiennes</div>
                 </div>
             `;
         }
@@ -763,6 +758,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Création du CSV
             const headers = 'id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error\n';
             const csvContent = headers + processedData.map(row => {
                 return `"${row.id}",${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon},"${row.distance_km}","${row.duration_minutes}","${row.status}","${row.error || ''}"`;
@@ -778,6 +774,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Filtrer uniquement les trajets réussis avec géométrie
             const successfulRoutes = processedData.filter(route => 
                 route.status === 'success' && route.geometry
             );
@@ -787,6 +784,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Créer le GeoJSON
             const geojson = {
                 type: "FeatureCollection",
                 features: []
@@ -794,6 +792,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
             successfulRoutes.forEach(route => {
                 try {
+                    // Décoder la polyline si c'est une chaîne
                     let coordinates;
                     if (typeof route.geometry === 'string') {
                         coordinates = decodePolyline(route.geometry);
@@ -828,9 +827,11 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 }
             });
 
+            // Télécharger le fichier GeoJSON
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
             downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
 
+            // Afficher un message de confirmation
             alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
         }
 
@@ -840,6 +841,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Filtrer uniquement les trajets réussis avec géométrie
             const successfulRoutes = processedData.filter(route => 
                 route.status === 'success' && route.geometry
             );
@@ -849,6 +851,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Créer le GeoJSON avec tous les points des itinéraires
             const geojson = {
                 type: "FeatureCollection",
                 features: []
@@ -856,6 +859,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
             successfulRoutes.forEach(route => {
                 try {
+                    // Décoder la polyline ou utiliser les coordonnées directement
                     let coordinates;
                     if (typeof route.geometry === 'string') {
                         coordinates = decodePolyline(route.geometry);
@@ -866,8 +870,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                         return;
                     }
 
+                    // Ajouter chaque point de la ligne comme un point individuel
                     coordinates.forEach((point, index) => {
-                        const [longitude, latitude] = point;
+                        const [longitude, latitude] = point; // Extraction des coordonnées
                         
                         const pointFeature = {
                             type: "Feature",
@@ -897,14 +902,16 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 }
             });
 
+            // Télécharger le fichier GeoJSON
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
             downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
 
+            // Afficher un message de confirmation
             alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
         }
 
-        // Initialiser le compteur au chargement de la page
-        window.onload = fetchApiCount;
+        // Initialize request count on page load
+        document.addEventListener('DOMContentLoaded', loadRequestCount);
     </script>
 </body>
 </html>
