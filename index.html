@@ -351,56 +351,50 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         let successCount = 0;
         let errorCount = 0;
         
-        // Compteur de requêtes API quotidiennes
-        let dailyApiCounter = 0;
-        let lastApiCallDate = new Date().toDateString();
-        
-        // Délai minimum entre les requêtes API (1.6 secondes)
-        const API_DELAY_MS = 1600;
-        let lastApiCallTime = 0;
+        // URL de votre script Google
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVozswQD9xv4pnlOa4ShbOo96WoTOyen3H8nrlZsfkTyOc_appYbxLisTyV2yNxsTyEg/exec";
 
-        // Fonction pour mettre à jour le compteur API
-        function updateApiCounter() {
-            const today = new Date().toDateString();
-            
-            // Réinitialiser le compteur si c'est un nouveau jour
-            if (today !== lastApiCallDate) {
-                dailyApiCounter = 0;
-                lastApiCallDate = today;
-                document.getElementById('apiWarning').style.display = 'none';
+        // Fonction pour mettre à jour le compteur global
+        async function updateGlobalCounter() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`${SCRIPT_URL}?date=${today}`, {
+                    method: 'POST',
+                    redirect: 'follow'
+                });
+                
+                // Pour contourner les restrictions CORS
+                const data = await response.json();
+                console.log("Compteur global:", data.count);
+                return data.count;
+            } catch (error) {
+                console.error("Erreur de suivi global", error);
+                return null;
             }
-            
-            // Incrémenter le compteur
-            dailyApiCounter++;
-            
-            // Afficher un avertissement si on approche des limites
-            const warningElement = document.getElementById('apiWarning');
-            if (dailyApiCounter >= 1900) {
-                warningElement.textContent = `ATTENTION : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui. La limite quotidienne sera bientôt atteinte.`;
-                warningElement.style.display = 'block';
-            } else if (dailyApiCounter >= 1800) {
-                warningElement.textContent = `Attention : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui`;
-                warningElement.style.display = 'block';
-            } else if (dailyApiCounter >= 1700) {
-                warningElement.textContent = `Information : ${dailyApiCounter}/2000 requêtes API utilisées aujourd'hui`;
-                warningElement.style.display = 'block';
-            }
-            
-            // Mettre à jour l'affichage du compteur
-            updateStats();
         }
 
-        // Fonction pour respecter le délai entre les requêtes API
-        async function enforceApiRateLimit() {
-            const now = Date.now();
-            const timeSinceLastCall = now - lastApiCallTime;
-            
-            if (timeSinceLastCall < API_DELAY_MS) {
-                const delay = API_DELAY_MS - timeSinceLastCall;
-                await new Promise(resolve => setTimeout(resolve, delay));
+        // Fonction pour récupérer le compteur global
+        async function getGlobalCount() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                return data.count || 0;
+            } catch (error) {
+                console.error("Erreur de récupération", error);
+                return 0;
             }
+        }
+
+        // Fonction pour mettre à jour l'affichage du compteur
+        async function updateCounterDisplay() {
+            const count = await getGlobalCount();
+            document.getElementById('globalCounter').textContent = count;
             
-            lastApiCallTime = Date.now();
+            if (count >= 1800) {
+                document.getElementById('apiWarning').style.display = 'block';
+                document.getElementById('apiWarning').textContent = 
+                    `Attention: ${count}/2000 requêtes utilisées aujourd'hui`;
+            }
         }
 
         function downloadSample() {
@@ -530,8 +524,11 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         async function calculateRouteWithRadius(startLat, startLon, endLat, endLon, apiKey, profile, radius) {
-            // Appliquer le rate limiting
-            await enforceApiRateLimit();
+            // Vérifier le compteur global avant chaque requête
+            const globalCount = await getGlobalCount();
+            if (globalCount >= 2000) {
+                throw new Error("Limite quotidienne de l'API atteinte (2000 requêtes)");
+            }
             
             const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
             
@@ -555,8 +552,8 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     body: JSON.stringify(requestBody)
                 });
 
-                // Mettre à jour le compteur API après chaque appel
-                updateApiCounter();
+                // Mettre à jour le compteur global après chaque appel
+                await updateGlobalCounter();
 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -616,6 +613,13 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Vérifier le compteur global avant de commencer
+            const globalCount = await getGlobalCount();
+            if (globalCount >= 2000) {
+                alert("Limite quotidienne de l'API atteinte (2000 requêtes)");
+                return;
+            }
+
             const inputData = parseCSVData(csvData);
             if (inputData.length === 0) {
                 alert('Aucune donnée valide trouvée dans le CSV');
@@ -641,9 +645,19 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             
             resultsList.innerHTML = '';
 
-            // Traitement séquentiel avec délai entre chaque requête
+            // Traitement séquentiel avec vérification périodique du compteur
             for (let i = 0; i < inputData.length; i++) {
                 const item = inputData[i];
+                
+                // Vérification périodique du compteur global
+                if (i % 10 === 0) {
+                    const currentCount = await getGlobalCount();
+                    if (currentCount >= 2000) {
+                        alert("Limite quotidienne atteinte pendant le traitement");
+                        break;
+                    }
+                }
+                
                 try {
                     const route = await calculateRouteWithRadius(
                         item.start_lat, item.start_lon,
@@ -694,6 +708,11 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     resultDiv.className = 'result-item error';
                     resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
                     resultsList.appendChild(resultDiv);
+                    
+                    // Si l'erreur est due à la limite API, arrêter le traitement
+                    if (error.message.includes("Limite quotidienne")) {
+                        break;
+                    }
                 }
 
                 // Mise à jour de la barre de progression
@@ -716,6 +735,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         function updateStats() {
+            // Mettre à jour l'affichage du compteur global
+            updateCounterDisplay();
+            
             const statsDiv = document.getElementById('stats');
             statsDiv.innerHTML = `
                 <div class="stat-card">
@@ -735,8 +757,8 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     <div class="stat-label">Taux de réussite</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${dailyApiCounter}</div>
-                    <div class="stat-label">Requêtes API (aujourd'hui)</div>
+                    <div class="stat-value" id="globalCounter">0</div>
+                    <div class="stat-label">Requêtes globales</div>
                 </div>
             `;
         }
@@ -900,7 +922,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
         }
 
         // Initialiser le compteur API au chargement de la page
-        updateStats();
+        updateCounterDisplay();
+        // Actualiser périodiquement
+        setInterval(updateCounterDisplay, 60000); // Toutes les minutes
     </script>
 </body>
 </html>
