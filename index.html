@@ -24,6 +24,7 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         .header {
             text-align: center;
@@ -45,7 +46,7 @@
         .form-section {
             margin-bottom: 30px;
             padding: 25px;
-            background: rgba among (255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -63,7 +64,7 @@
             color: #333;
             font-weight: 500;
         }
-        input, textarea, select {
+        input, textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
@@ -72,10 +73,13 @@
             transition: all 0.3s ease;
             background: rgba(255, 255, 255, 0.8);
         }
-        input:focus, textarea:focus, select:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        input[type="password"] {
+            font-family: monospace;
         }
         textarea {
             resize: vertical;
@@ -129,15 +133,6 @@
             background: #ccc;
             cursor: not-allowed;
         }
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            margin-left: 10px;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
         .btn-geojson {
             background: linear-gradient(45deg, #28a745, #20c997);
             color: white;
@@ -155,6 +150,17 @@
         .btn-points:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(253, 126, 20, 0.3);
+        }
+        .next-step-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        .next-step-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
         .progress-container {
             display: none;
@@ -245,22 +251,23 @@
             .container {
                 padding: 20px;
             }
-            
             .header h1 {
                 font-size: 2em;
             }
-            
             .stats {
                 grid-template-columns: 1fr;
             }
-            
             .download-buttons {
                 flex-direction: column;
             }
-            
             .btn {
                 margin-left: 0 !important;
                 margin-bottom: 10px;
+            }
+            .next-step-btn {
+                position: static;
+                margin-top: 20px;
+                width: 100%;
             }
         }
     </style>
@@ -274,27 +281,8 @@
         <div class="form-section">
             <h3>📍 Configuration</h3>
             <div class="form-group">
-                <label for="apiKey">Clé API OpenRouteService :</label>
-                <input type="text" id="apiKey" value="5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e" placeholder="Votre clé API">
-            </div>
-            <div class="form-group">
-                <label for="profile">Profil de transport :</label>
-                <select id="profile">
-                    <option value="cycling-regular">Vélo standard</option>
-                    <option value="cycling-road">Vélo de route</option>
-                    <option value="cycling-mountain">VTT</option>
-                    <option value="cycling-electric">Vélo électrique</option>
-                    <option value="driving-car">Voiture (test)</option>
-                    <option value="foot-walking">Marche (test)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="searchRadius">Rayon de recherche (mètres) :</label>
-                <select id="searchRadius">
-                    <option value="1000">1000m (recommandé)</option>
-                    <option value="2000">2000m</option>
-                    <option value="5000">5000m</option>
-                </select>
+                <label for="apiKey">Clé API OpenRouteService (optionnel) :</label>
+                <input type="password" id="apiKey" placeholder="Saisir une nouvelle clé API (optionnel)">
             </div>
         </div>
         <div class="form-section">
@@ -316,7 +304,6 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         </div>
         <div class="form-section">
             <button class="btn btn-primary" id="processBtn" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
-            <button class="btn btn-secondary" onclick="downloadSample()">📥 Télécharger exemple CSV</button>
         </div>
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar">
@@ -340,6 +327,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                 </button>
             </div>
         </div>
+        <a href="https://mariusbrion.github.io/analyseur/" class="btn next-step-btn">Étape suivante</a>
     </div>
     <script>
         let processedData = [];
@@ -360,7 +348,6 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                 if (date === getCurrentDate()) {
                     dailyRequestCount = count;
                 } else {
-                    // Reset if it's a new day
                     dailyRequestCount = 0;
                     localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
                 }
@@ -380,7 +367,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         }
 
         function checkRequestLimit() {
-            const warningThreshold = DAILY_LIMIT * 0.9; // 90% of limit
+            const warningThreshold = DAILY_LIMIT * 0.9;
             const resultsList = document.getElementById('resultsList');
             const existingWarning = document.querySelector('.result-item.warning');
             if (existingWarning) existingWarning.remove();
@@ -397,17 +384,6 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                 warningDiv.innerHTML = `⚠️ Approche de la limite quotidienne (${dailyRequestCount}/${DAILY_LIMIT} requêtes).`;
                 resultsList.insertBefore(warningDiv, resultsList.firstChild);
             }
-        }
-
-        function downloadSample() {
-            const sampleData = `id,start_lat,start_lon,end_lat,end_lon
-employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909
-employé h2,-0.5759420966,44.8124628849,-0.6031024699,44.8266054909
-employé h3,-0.5700829040,44.8121878266,-0.6031024699,44.8266054909
-employé g1,-0.5716569701,44.8292473283,-0.5579514365,44.8275367638
-employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
-            
-            downloadCSV(sampleData, 'exemple_donnees.csv');
         }
 
         function downloadCSV(content, filename) {
@@ -453,7 +429,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 const line = lines[i].trim();
                 if (line === '') continue;
                 
-                // Gestion flexible du parsing
                 const parts = line.split(',');
                 if (parts.length >= 5) {
                     data.push({
@@ -464,7 +439,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                         end_lon: parseFloat(parts[4])
                     });
                 } else {
-                    // Tentative de parsing avec espaces
                     const spaceparts = line.split(/\s+/);
                     if (spaceparts.length >= 5) {
                         data.push({
@@ -541,7 +515,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Authorization': apiKey,
+                        'Authorization': apiKey>") ? apiKey : '5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e',
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json'
                     },
@@ -564,7 +538,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                             }
                         }
                     } catch (parseError) {
-                        // Si le parsing échoue, utiliser le message d'origine
                     }
                     
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -592,14 +565,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
         async function processRoutes() {
             const apiKey = document.getElementById('apiKey').value.trim();
-            const profile = document.getElementById('profile').value;
+            const profile = 'cycling-regular';
             const csvData = document.getElementById('csvData').value.trim();
-            const searchRadius = parseInt(document.getElementById('searchRadius').value);
-
-            if (!apiKey) {
-                alert('Veuillez saisir votre clé API OpenRouteService');
-                return;
-            }
+            const searchRadius = 300;
 
             if (!csvData) {
                 alert('Veuillez fournir des données CSV');
@@ -612,7 +580,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Check current request count before processing
             loadRequestCount();
             if (dailyRequestCount >= DAILY_LIMIT) {
                 alert('Limite quotidienne de requêtes API atteinte. Veuillez réessayer demain.');
@@ -624,13 +591,11 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Réinitialisation
             processedData = [];
             totalRoutes = inputData.length;
             successCount = 0;
             errorCount = 0;
 
-            // Affichage des éléments de progression
             document.getElementById('progressContainer').style.display = 'block';
             document.getElementById('results').style.display = 'block';
             document.getElementById('downloadBtn').style.display = 'none';
@@ -643,7 +608,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             
             resultsList.innerHTML = '';
 
-            // Traitement séquentiel avec délai de 1.6s entre chaque requête
             for (let i = 0; i < inputData.length; i++) {
                 const item = inputData[i];
                 try {
@@ -653,7 +617,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                         apiKey, profile, searchRadius
                     );
 
-                    updateRequestCounter(); // Update counter after each API call
+                    updateRequestCounter();
 
                     const result = {
                         id: item.id,
@@ -670,14 +634,13 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     processedData.push(result);
                     successCount++;
 
-                    // Mise à jour de l'affichage
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'result-item success';
                     resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
                     resultsList.appendChild(resultDiv);
 
                 } catch (error) {
-                    updateRequestCounter(); // Update counter even on error
+                    updateRequestCounter();
 
                     const result = {
                         id: item.id,
@@ -695,31 +658,26 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     processedData.push(result);
                     errorCount++;
 
-                    // Mise à jour de l'affichage
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'result-item error';
                     resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
                     resultsList.appendChild(resultDiv);
                 }
 
-                // Mise à jour de la barre de progression
                 const progress = ((i + 1) / totalRoutes) * 100;
                 progressFill.style.width = progress + '%';
                 progressText.textContent = `Traitement: ${i + 1}/${totalRoutes}`;
                 
                 updateStats();
 
-                // Attendre 1.6s avant la prochaine requête
                 if (i < inputData.length - 1) {
                     await new Promise(resolve => setTimeout(resolve, 1600));
                 }
             }
 
-            // Finalisation
             progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
             document.getElementById('downloadBtn').style.display = 'inline-block';
             
-            // Afficher les boutons GeoJSON seulement s'il y a des trajets réussis
             if (successCount > 0) {
                 document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
                 document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
@@ -758,7 +716,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Création du CSV
             const headers = 'id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error\n';
             const csvContent = headers + processedData.map(row => {
                 return `"${row.id}",${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon},"${row.distance_km}","${row.duration_minutes}","${row.status}","${row.error || ''}"`;
@@ -774,7 +731,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Filtrer uniquement les trajets réussis avec géométrie
             const successfulRoutes = processedData.filter(route => 
                 route.status === 'success' && route.geometry
             );
@@ -784,7 +740,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Créer le GeoJSON
             const geojson = {
                 type: "FeatureCollection",
                 features: []
@@ -792,7 +747,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
             successfulRoutes.forEach(route => {
                 try {
-                    // Décoder la polyline si c'est une chaîne
                     let coordinates;
                     if (typeof route.geometry === 'string') {
                         coordinates = decodePolyline(route.geometry);
@@ -813,7 +767,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                             start_lon: route.start_lon,
                             end_lat: route.end_lat,
                             end_lon: route.end_lon,
-                            profile: document.getElementById('profile').value
+                            profile: 'cycling-regular'
                         },
                         geometry: {
                             type: "LineString",
@@ -827,11 +781,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 }
             });
 
-            // Télécharger le fichier GeoJSON
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
             downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
 
-            // Afficher un message de confirmation
             alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
         }
 
@@ -841,7 +793,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Filtrer uniquement les trajets réussis avec géométrie
             const successfulRoutes = processedData.filter(route => 
                 route.status === 'success' && route.geometry
             );
@@ -851,7 +802,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
-            // Créer le GeoJSON avec tous les points des itinéraires
             const geojson = {
                 type: "FeatureCollection",
                 features: []
@@ -859,7 +809,6 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
 
             successfulRoutes.forEach(route => {
                 try {
-                    // Décoder la polyline ou utiliser les coordonnées directement
                     let coordinates;
                     if (typeof route.geometry === 'string') {
                         coordinates = decodePolyline(route.geometry);
@@ -870,9 +819,8 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                         return;
                     }
 
-                    // Ajouter chaque point de la ligne comme un point individuel
                     coordinates.forEach((point, index) => {
-                        const [longitude, latitude] = point; // Extraction des coordonnées
+                        const [longitude, latitude] = point;
                         
                         const pointFeature = {
                             type: "Feature",
@@ -884,7 +832,7 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                                 total_points: coordinates.length,
                                 distance_km: parseFloat(route.distance_km),
                                 duration_minutes: parseInt(route.duration_minutes),
-                                profile: document.getElementById('profile').value,
+                                profile: 'cycling-regular',
                                 point_type: index === 0 ? 'start' : 
                                           (index === coordinates.length - 1 ? 'end' : 'intermediate')
                             },
@@ -902,15 +850,12 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 }
             });
 
-            // Télécharger le fichier GeoJSON
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
             downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
 
-            // Afficher un message de confirmation
             alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
         }
 
-        // Initialize request count on page load
         document.addEventListener('DOMContentLoaded', loadRequestCount);
     </script>
 </body>
