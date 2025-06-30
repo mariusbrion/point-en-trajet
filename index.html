@@ -3,246 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculateur d'Itinéraires Vélo</title>
+    <title>Convertisseur d'Adresses GPS</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
-        .form-section {
-            margin-bottom: 30px;
-            padding: 25px;
-            background: rgba among (255, 255, 255, 0.5);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .form-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.8);
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        textarea {
-            resize: vertical;
-            min-height: 120px;
-            font-family: monospace;
-        }
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-        .file-input {
-            position: absolute;
-            left: -9999px;
-        }
-        .file-input-label {
-            display: block;
-            padding: 12px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-        .file-input-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        .btn-primary:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            margin-left: 10px;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-        .btn-geojson {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            margin-left: 10px;
-        }
-        .btn-geojson:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
-        }
-        .btn-points {
-            background: linear-gradient(45deg, #fd7e14, #ffc107);
-            color: white;
-            margin-left: 10px;
-        }
-        .btn-points:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(253, 126, 20, 0.3);
-        }
-        .progress-container {
-            display: none;
-            margin: 20px 0;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-        .progress-text {
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
             text-align: center;
-            margin-top: 10px;
-            color: #333;
-            font-weight: 500;
         }
-        .results {
-            margin-top: 30px;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .results h3 {
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
             color: #333;
             margin-bottom: 15px;
+            font-size: 1.5em;
         }
-        .result-item {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.7);
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        .error {
-            background: rgba(220, 53, 69, 0.1);
-            border-left-color: #dc3545;
-            color: #721c24;
-        }
-        .success {
-            background: rgba(40, 167, 69, 0.1);
-            border-left-color: #28a745;
-            color: #155724;
-        }
-        .warning {
-            background: rgba(255, 193, 7, 0.1);
-            border-left-color: #ffc107;
-            color: #856404;
-        }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .stat-card {
-            background: rgba(255, 255, 255, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .stat-label {
-            color: #666;
-            margin-top: 5px;
-        }
-        .download-buttons {
-            margin-top: 20px;
+
+        .input-tabs {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
         }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #4facfe;
+            border-bottom-color: #4facfe;
+        }
+
+        .tab-button:hover {
+            color: #4facfe;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #4facfe;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+
+        .file-upload-area.dragover {
+            background: #e6f2ff;
+            border-color: #667eea;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #4facfe;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e6f7ff;
+            border-radius: 5px;
+            display: none;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa8a8 100%);
+        }
+
+        .progress-container {
+            margin: 20px 0;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .output-area {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d9ff;
+        }
+
+        .example {
+            background: #f8f9fa;
+            border-left: 4px solid #4facfe;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .example h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .example code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
         @media (max-width: 768px) {
-            .container {
+            .main-content {
                 padding: 20px;
             }
             
@@ -250,17 +299,26 @@
                 font-size: 2em;
             }
             
-            .stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .download-buttons {
+            .controls {
                 flex-direction: column;
             }
             
-            .btn {
-                margin-left: 0 !important;
-                margin-bottom: 10px;
+            button {
+                width: 100%;
+            }
+
+            .input-tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                border-bottom: 1px solid #e0e0e0;
+                border-right: none;
+            }
+
+            .tab-button.active {
+                border-right: none;
+                border-left: 3px solid #4facfe;
             }
         }
     </style>
@@ -268,650 +326,587 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚴‍♂️ Calculateur d'Itinéraires Vélo</h1>
-            <p>Calcul d'itinéraires vélo avec OpenRouteService - Traitement par lot avec export GeoJSON</p>
+            <h1>🗺️ Convertisseur d'Adresses GPS</h1>
+            <p>Transformez vos adresses en coordonnées géographiques pour fichier CSV</p>
         </div>
-        <div class="form-section">
-            <h3>📍 Configuration</h3>
-            <div class="form-group">
-                <label for="apiKey">Clé API OpenRouteService :</label>
-                <input type="text" id="apiKey" value="5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e" placeholder="Votre clé API">
+
+        <div class="main-content">
+            <div class="example">
+                <h3>Format de sortie :</h3>
+                <p><strong>CSV généré :</strong> <code>id,start_lat,start_lon,end_lat,end_lon</code></p>
+                <p style="margin-top: 10px; font-size: 14px; color: #666;">
+                    Les coordonnées de départ correspondent à l'adresse de l'employé, les coordonnées d'arrivée à l'adresse de l'employeur.
+                </p>
             </div>
-            <div class="form-group">
-                <label for="profile">Profil de transport :</label>
-                <select id="profile">
-                    <option value="cycling-regular">Vélo standard</option>
-                    <option value="cycling-road">Vélo de route</option>
-                    <option value="cycling-mountain">VTT</option>
-                    <option value="cycling-electric">Vélo électrique</option>
-                    <option value="driving-car">Voiture (test)</option>
-                    <option value="foot-walking">Marche (test)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="searchRadius">Rayon de recherche (mètres) :</label>
-                <select id="searchRadius">
-                    <option value="1000">1000m (recommandé)</option>
-                    <option value="2000">2000m</option>
-                    <option value="5000">5000m</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-section">
-            <h3>📂 Données d'entrée</h3>
-            <div class="form-group">
-                <label>Option 1 : Fichier CSV</label>
-                <div class="file-input-wrapper">
-                    <input type="file" id="csvFile" class="file-input" accept=".csv,.txt">
-                    <label for="csvFile" class="file-input-label">📁 Sélectionner un fichier CSV</label>
+
+            <div class="input-section">
+                <h2>📝 Choisissez votre méthode d'import</h2>
+                
+                <div class="input-tabs">
+                    <button class="tab-button active" onclick="switchTab('manual')">✏️ Saisie manuelle</button>
+                    <button class="tab-button" onclick="switchTab('csv')">📄 Import fichier CSV</button>
+                </div>
+
+                <div id="manual-tab" class="tab-content active">
+                    <p style="margin-bottom: 15px; color: #666;">
+                        Format attendu : une ligne pour l'employé, une ligne pour l'employeur, puis répéter.
+                    </p>
+                    <textarea id="addressInput" placeholder="Bordeaux;Rue Lecoq
+Hôpital Pellegrin (EFS);Place Amélie Raba Léon
+Bordeaux;Avenue Jean Cordier
+Hôpital Pellegrin (EFS);Place Amélie Raba Léon
+..."></textarea>
+                </div>
+
+                <div id="csv-tab" class="tab-content">
+                    <p style="margin-bottom: 15px; color: #666;">
+                        Uploadez un fichier CSV avec 2 colonnes : <strong>Adresse employé</strong> | <strong>Adresse employeur</strong>
+                    </p>
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
+                        <strong>Format attendu :</strong> CSV avec virgules comme séparateur principal.<br>
+                        <strong>Exemple :</strong><br>
+                        <code>adresse employé,adresse employeur</code><br>
+                        <code>"Bordeaux;Rue Lecoq","Hôpital Pellegrin (EFS);Place Amélie Raba Léon"</code>
+                    </div>
+                    <div class="file-upload-area" onclick="document.getElementById('csvFile').click()">
+                        <input type="file" id="csvFile" class="file-input" accept=".csv" onchange="handleFileSelect(event)">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Cliquez pour sélectionner un fichier CSV</div>
+                        <div class="upload-hint">ou glissez-déposez votre fichier ici</div>
+                    </div>
+                    <div id="fileInfo" class="file-info">
+                        <strong>Fichier sélectionné :</strong> <span id="fileName"></span><br>
+                        <strong>Nombre de lignes :</strong> <span id="fileRows"></span><br>
+                        <div id="dataPreview" style="margin-top: 10px; font-family: monospace; font-size: 12px; background: #f8f9fa; padding: 10px; border-radius: 3px;"></div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="csvData">Option 2 : Coller les données CSV :</label>
-                <textarea id="csvData" placeholder="Collez vos données CSV ici...
-Format : id,start_lat,start_lon,end_lat,end_lon
-Exemple :
-employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
+
+            <div class="controls">
+                <button onclick="processAddresses()" id="processBtn">🚀 Convertir les adresses</button>
+                <button onclick="downloadCSV()" id="downloadBtn" class="download-btn" disabled>💾 Télécharger CSV</button>
+                <button onclick="clearAll()" class="clear-btn">🗑️ Effacer tout</button>
             </div>
-        </div>
-        <div class="form-section">
-            <button class="btn btn-primary" id="processBtn" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
-            <button class="btn btn-secondary" onclick="downloadSample()">📥 Télécharger exemple CSV</button>
-        </div>
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+                <div class="progress-text" id="progressText">Traitement en cours...</div>
             </div>
-            <div class="progress-text" id="progressText">Traitement en cours...</div>
-        </div>
-        <div class="results" id="results" style="display: none;">
-            <h3>📊 Résultats</h3>
-            <div class="stats" id="stats"></div>
-            <div id="resultsList"></div>
-            <div class="download-buttons">
-                <button class="btn btn-primary" id="downloadBtn" onclick="downloadResults()" style="display: none;">
-                    💾 Télécharger les résultats CSV
-                </button>
-                <button class="btn btn-geojson" id="downloadGeoJsonBtn" onclick="downloadGeoJSON()" style="display: none;">
-                    🗺️ Télécharger GeoJSON (lignes)
-                </button>
-                <button class="btn btn-points" id="downloadGeoJsonPointsBtn" onclick="downloadGeoJSONPoints()" style="display: none;">
-                    📍 Télécharger GeoJSON (tous les points)
-                </button>
+
+            <div id="statusContainer"></div>
+
+            <div class="output-section">
+                <h2>📊 Résultat CSV</h2>
+                <div class="output-area" id="outputArea">Le fichier CSV apparaîtra ici après conversion...</div>
             </div>
         </div>
     </div>
+
     <script>
+        let csvData = '';
         let processedData = [];
-        let totalRoutes = 0;
-        let successCount = 0;
-        let errorCount = 0;
-        let dailyRequestCount = 0;
-        const DAILY_LIMIT = 2000;
+        let uploadedData = [];
 
-        function getCurrentDate() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        function loadRequestCount() {
-            const stored = localStorage.getItem('apiRequestData');
-            if (stored) {
-                const { date, count } = JSON.parse(stored);
-                if (date === getCurrentDate()) {
-                    dailyRequestCount = count;
-                } else {
-                    // Reset if it's a new day
-                    dailyRequestCount = 0;
-                    localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
-                }
-            } else {
-                dailyRequestCount = 0;
-                localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
-            }
-            updateStats();
-            checkRequestLimit();
-        }
-
-        function updateRequestCounter() {
-            dailyRequestCount++;
-            localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: dailyRequestCount }));
-            updateStats();
-            checkRequestLimit();
-        }
-
-        function checkRequestLimit() {
-            const warningThreshold = DAILY_LIMIT * 0.9; // 90% of limit
-            const resultsList = document.getElementById('resultsList');
-            const existingWarning = document.querySelector('.result-item.warning');
-            if (existingWarning) existingWarning.remove();
-
-            if (dailyRequestCount >= DAILY_LIMIT) {
-                const warningDiv = document.createElement('div');
-                warningDiv.className = 'result-item warning';
-                warningDiv.innerHTML = `⚠️ Limite quotidienne atteinte (${dailyRequestCount}/${DAILY_LIMIT} requêtes). Veuillez réessayer demain.`;
-                resultsList.insertBefore(warningDiv, resultsList.firstChild);
-                document.getElementById('processBtn').disabled = true;
-            } else if (dailyRequestCount >= warningThreshold) {
-                const warningDiv = document.createElement('div');
-                warningDiv.className = 'result-item warning';
-                warningDiv.innerHTML = `⚠️ Approche de la limite quotidienne (${dailyRequestCount}/${DAILY_LIMIT} requêtes).`;
-                resultsList.insertBefore(warningDiv, resultsList.firstChild);
-            }
-        }
-
-        function downloadSample() {
-            const sampleData = `id,start_lat,start_lon,end_lat,end_lon
-employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909
-employé h2,-0.5759420966,44.8124628849,-0.6031024699,44.8266054909
-employé h3,-0.5700829040,44.8121878266,-0.6031024699,44.8266054909
-employé g1,-0.5716569701,44.8292473283,-0.5579514365,44.8275367638
-employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
+        function switchTab(tabName) {
+            // Cacher tous les contenus d'onglets
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
             
-            downloadCSV(sampleData, 'exemple_donnees.csv');
+            // Cacher tous les boutons d'onglets
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Afficher l'onglet sélectionné
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
         }
 
-        function downloadCSV(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusContainer');
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            container.appendChild(status);
+            
+            setTimeout(() => {
+                status.remove();
+            }, 5000);
         }
 
-        function downloadJSON(content, filename) {
-            const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function updateProgress(current, total) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            if (current === 0) {
+                progressContainer.style.display = 'block';
+            }
+            
+            const percentage = (current / total) * 100;
+            progressBar.style.width = percentage + '%';
+            progressText.textContent = `Traitement: ${current}/${total} adresses (${Math.round(percentage)}%)`;
+            
+            if (current === total) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 1000);
+            }
         }
 
-        document.getElementById('csvFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('csvData').value = e.target.result;
-                };
-                reader.readAsText(file);
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showStatus('Veuillez sélectionner un fichier CSV', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                parseCsvData(csvText, file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCsvData(csvText, fileName) {
+            try {
+                const lines = csvText.split('\n').filter(line => line.trim());
+                
+                if (lines.length === 0) {
+                    showStatus('Le fichier CSV est vide', 'error');
+                    return;
+                }
+
+                uploadedData = [];
+                
+                // Ignorer la première ligne si elle ressemble à un en-tête
+                const startIndex = (lines[0].toLowerCase().includes('employé') || 
+                                  lines[0].toLowerCase().includes('adresse') ||
+                                  lines[0].toLowerCase().includes('employee')) ? 1 : 0;
+
+                console.log('Première ligne:', lines[0]);
+                console.log('Index de départ:', startIndex);
+
+                for (let i = startIndex; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    console.log(`Ligne ${i}:`, line);
+
+                    // Parser CSV plus robuste pour gérer les guillemets et virgules dans les données
+                    const parts = parseCSVLine(line);
+                    
+                    console.log(`Parties détectées:`, parts);
+                    
+                    if (parts.length >= 2) {
+                        const employee = parts[0].trim().replace(/^["']|["']$/g, '');
+                        const employer = parts[1].trim().replace(/^["']|["']$/g, '');
+                        
+                        if (employee && employer) {
+                            uploadedData.push({
+                                employee: employee,
+                                employer: employer
+                            });
+                            console.log(`Ajouté: ${employee} -> ${employer}`);
+                        }
+                    } else {
+                        console.warn(`Ligne ignorée (format incorrect): ${line}`);
+                    }
+                }
+
+                if (uploadedData.length === 0) {
+                    showStatus('Aucune donnée valide trouvée dans le fichier CSV. Vérifiez le format.', 'error');
+                    return;
+                }
+
+                // Afficher les informations du fichier
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('fileRows').textContent = uploadedData.length;
+                document.getElementById('fileInfo').style.display = 'block';
+
+                // Afficher un aperçu des premières données
+                const preview = document.getElementById('dataPreview');
+                if (uploadedData.length > 0) {
+                    let previewText = 'Aperçu des données:\n';
+                    const showCount = Math.min(3, uploadedData.length);
+                    for (let i = 0; i < showCount; i++) {
+                        previewText += `${i+1}. Employé: "${uploadedData[i].employee}"\n   Employeur: "${uploadedData[i].employer}"\n\n`;
+                    }
+                    if (uploadedData.length > 3) {
+                        previewText += `... et ${uploadedData.length - 3} autres lignes`;
+                    }
+                    preview.textContent = previewText;
+                } else {
+                    preview.textContent = 'Aucune donnée valide trouvée';
+                }
+
+                showStatus(`Fichier CSV chargé avec succès : ${uploadedData.length} paires d'adresses trouvées`, 'success');
+
+                // Afficher un aperçu des données dans la console
+                console.log('Données chargées:', uploadedData.slice(0, 3));
+
+            } catch (error) {
+                console.error('Erreur parsing CSV:', error);
+                showStatus('Erreur lors de la lecture du fichier CSV : ' + error.message, 'error');
+            }
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            let quoteChar = '';
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (!inQuotes && (char === '"' || char === "'")) {
+                    inQuotes = true;
+                    quoteChar = char;
+                } else if (inQuotes && char === quoteChar) {
+                    if (nextChar === quoteChar) {
+                        // Guillemet échappé
+                        current += char;
+                        i++; // Skip next quote
+                    } else {
+                        inQuotes = false;
+                        quoteChar = '';
+                    }
+                } else if (!inQuotes && char === ',') {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            // Ajouter le dernier élément
+            result.push(current);
+            
+            return result;
+        }
+
+        // Drag and drop functionality
+        const uploadArea = document.querySelector('.file-upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        parseCsvData(e.target.result, file.name);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    showStatus('Veuillez déposer un fichier CSV', 'error');
+                }
             }
         });
 
-        function parseCSVData(csvText) {
-            const lines = csvText.trim().split('\n');
-            const data = [];
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line === '') continue;
+        async function geocodeAddress(address) {
+            try {
+                // Améliorer le formatage de l'adresse pour Nominatim
+                let cleanAddress;
                 
-                // Gestion flexible du parsing
-                const parts = line.split(',');
-                if (parts.length >= 5) {
-                    data.push({
-                        id: parts[0].trim(),
-                        start_lat: parseFloat(parts[1]),
-                        start_lon: parseFloat(parts[2]),
-                        end_lat: parseFloat(parts[3]),
-                        end_lon: parseFloat(parts[4])
-                    });
+                if (address.includes(';')) {
+                    const parts = address.split(';');
+                    if (parts.length === 2) {
+                        const city = parts[0].trim();
+                        const street = parts[1].trim();
+                        // Format: "rue, ville, France"
+                        cleanAddress = `${street}, ${city}, France`;
+                    } else {
+                        cleanAddress = address.replace(/[;]/g, ', ').trim() + ', France';
+                    }
                 } else {
-                    // Tentative de parsing avec espaces
-                    const spaceparts = line.split(/\s+/);
-                    if (spaceparts.length >= 5) {
-                        data.push({
-                            id: spaceparts[0].trim(),
-                            start_lat: parseFloat(spaceparts[1]),
-                            start_lon: parseFloat(spaceparts[2]),
-                            end_lat: parseFloat(spaceparts[3]),
-                            end_lon: parseFloat(spaceparts[4])
+                    cleanAddress = address + ', France';
+                }
+                
+                const encodedAddress = encodeURIComponent(cleanAddress);
+                
+                console.log(`Recherche pour: "${address}" → "${cleanAddress}"`);
+                
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1&countrycodes=fr&addressdetails=1`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    console.log(`✅ Trouvé: ${data[0].display_name}`);
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lon: parseFloat(data[0].lon),
+                        display_name: data[0].display_name
+                    };
+                } else {
+                    // Essayer une recherche plus large si la première échoue
+                    console.log(`❌ Aucun résultat pour "${cleanAddress}", essai avec recherche élargie...`);
+                    return await geocodeAddressExtended(address);
+                }
+            } catch (error) {
+                console.error('Erreur géocodage pour:', address, error);
+                
+                if (error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
+                    showStatus(`⚠️ Problème de réseau. Vérifiez votre connexion internet.`, 'error');
+                } else {
+                    showStatus(`❌ Impossible de géocoder: ${address}`, 'error');
+                }
+                
+                return null;
+            }
+        }
+
+        async function geocodeAddressExtended(address) {
+            try {
+                // Recherche élargie avec différents formats
+                const searchVariants = [];
+                
+                if (address.includes(';')) {
+                    const parts = address.split(';');
+                    const city = parts[0].trim();
+                    const street = parts[1].trim();
+                    
+                    // Différentes variantes de recherche
+                    searchVariants.push(`${street}, ${city}`);
+                    searchVariants.push(`${street} ${city}`);
+                    searchVariants.push(`${city} ${street}`);
+                    searchVariants.push(street); // Juste la rue
+                }
+                
+                for (const variant of searchVariants) {
+                    const encodedAddress = encodeURIComponent(variant + ', France');
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1&countrycodes=fr`;
+                    
+                    console.log(`Essai variante: "${variant}"`);
+                    
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data && data.length > 0) {
+                            console.log(`✅ Trouvé avec variante: ${data[0].display_name}`);
+                            return {
+                                lat: parseFloat(data[0].lat),
+                                lon: parseFloat(data[0].lon),
+                                display_name: data[0].display_name
+                            };
+                        }
+                    }
+                    
+                    // Petit délai entre les tentatives
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                console.warn(`❌ Aucun résultat trouvé pour: ${address}`);
+                return null;
+                
+            } catch (error) {
+                console.error('Erreur recherche étendue:', error);
+                return null;
+            }
+        }
+
+        async function processAddresses() {
+            const activeTab = document.querySelector('.tab-content.active').id;
+            let pairs = [];
+
+            if (activeTab === 'manual-tab') {
+                const input = document.getElementById('addressInput').value.trim();
+                if (!input) {
+                    showStatus('Veuillez entrer des adresses', 'error');
+                    return;
+                }
+
+                const lines = input.split('\n').filter(line => line.trim());
+                
+                // Grouper les lignes par paires
+                for (let i = 0; i < lines.length; i += 2) {
+                    if (i + 1 < lines.length) {
+                        pairs.push({
+                            employee: lines[i].trim(),
+                            employer: lines[i + 1].trim()
                         });
                     }
                 }
-            }
-            
-            return data;
-        }
-
-        function decodePolyline(str, precision = 5) {
-            let index = 0,
-                lat = 0,
-                lng = 0,
-                coordinates = [],
-                shift = 0,
-                result = 0,
-                byte = null,
-                latitude_change,
-                longitude_change,
-                factor = Math.pow(10, precision);
-
-            while (index < str.length) {
-                byte = null;
-                shift = 0;
-                result = 0;
-
-                do {
-                    byte = str.charCodeAt(index++) - 63;
-                    result |= (byte & 0x1f) << shift;
-                    shift += 5;
-                } while (byte >= 0x20);
-
-                latitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
-
-                shift = result = 0;
-
-                do {
-                    byte = str.charCodeAt(index++) - 63;
-                    result |= (byte & 0x1f) << shift;
-                    shift += 5;
-                } while (byte >= 0x20);
-
-                longitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
-
-                lat += latitude_change;
-                lng += longitude_change;
-
-                coordinates.push([lng / factor, lat / factor]);
+            } else {
+                // Utiliser les données du fichier CSV
+                if (uploadedData.length === 0) {
+                    showStatus('Veuillez d\'abord charger un fichier CSV', 'error');
+                    return;
+                }
+                pairs = uploadedData;
             }
 
-            return coordinates;
-        }
+            if (pairs.length === 0) {
+                showStatus('Aucune paire d\'adresses trouvée. Vérifiez vos données.', 'error');
+                return;
+            }
 
-        async function calculateRouteWithRadius(startLat, startLon, endLat, endLon, apiKey, profile, radius) {
-            const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
+            const processBtn = document.getElementById('processBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
             
-            const requestBody = {
-                coordinates: [[startLon, startLat], [endLon, endLat]],
-                radiuses: [radius, radius],
-                format: "json",
-                instructions: false,
-                geometry: true,
-                elevation: false
-            };
+            processBtn.disabled = true;
+            downloadBtn.disabled = true;
+            processBtn.textContent = '⏳ Traitement...';
 
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': apiKey,
-                        'Content-Type': 'application/json; charset=utf-8',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('API Response Error:', response.status, errorText);
-                    
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        if (errorData.error) {
-                            if (errorData.error.code === 2010) {
-                                throw new Error(`Point non routable (rayon ${radius}m insuffisant)`);
-                            } else if (errorData.error.code === 2099) {
-                                throw new Error(`Erreur API - Vérifiez votre clé API`);
-                            } else {
-                                throw new Error(`Erreur API ${errorData.error.code}: ${errorData.error.message || 'Erreur inconnue'}`);
-                            }
-                        }
-                    } catch (parseError) {
-                        // Si le parsing échoue, utiliser le message d'origine
-                    }
-                    
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
+                showStatus(`Début du traitement de ${pairs.length} paires d'adresses`, 'info');
                 
-                if (data.routes && data.routes.length > 0) {
-                    const route = data.routes[0];
-                    return {
-                        distance: (route.summary.distance / 1000).toFixed(2),
-                        duration: Math.round(route.summary.duration / 60),
-                        geometry: route.geometry || null
-                    };
-                } else {
-                    throw new Error('Aucun itinéraire trouvé');
-                }
-            } catch (error) {
-                if (error.message.includes('HTTP') || error.message.includes('Point non routable') || error.message.includes('Erreur API')) {
-                    throw error;
-                }
-                throw new Error(`Erreur réseau: ${error.message}`);
-            }
-        }
-
-        async function processRoutes() {
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const profile = document.getElementById('profile').value;
-            const csvData = document.getElementById('csvData').value.trim();
-            const searchRadius = parseInt(document.getElementById('searchRadius').value);
-
-            if (!apiKey) {
-                alert('Veuillez saisir votre clé API OpenRouteService');
-                return;
-            }
-
-            if (!csvData) {
-                alert('Veuillez fournir des données CSV');
-                return;
-            }
-
-            const inputData = parseCSVData(csvData);
-            if (inputData.length === 0) {
-                alert('Aucune donnée valide trouvée dans le CSV');
-                return;
-            }
-
-            // Check current request count before processing
-            loadRequestCount();
-            if (dailyRequestCount >= DAILY_LIMIT) {
-                alert('Limite quotidienne de requêtes API atteinte. Veuillez réessayer demain.');
-                return;
-            }
-
-            if (dailyRequestCount + inputData.length > DAILY_LIMIT) {
-                alert(`Le nombre de trajets demandés (${inputData.length}) dépasserait la limite quotidienne (${DAILY_LIMIT - dailyRequestCount} requêtes restantes). Veuillez réduire le nombre de trajets.`);
-                return;
-            }
-
-            // Réinitialisation
-            processedData = [];
-            totalRoutes = inputData.length;
-            successCount = 0;
-            errorCount = 0;
-
-            // Affichage des éléments de progression
-            document.getElementById('progressContainer').style.display = 'block';
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('downloadBtn').style.display = 'none';
-            document.getElementById('downloadGeoJsonBtn').style.display = 'none';
-            document.getElementById('downloadGeoJsonPointsBtn').style.display = 'none';
-
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            const resultsList = document.getElementById('resultsList');
-            
-            resultsList.innerHTML = '';
-
-            // Traitement séquentiel avec délai de 1.6s entre chaque requête
-            for (let i = 0; i < inputData.length; i++) {
-                const item = inputData[i];
-                try {
-                    const route = await calculateRouteWithRadius(
-                        item.start_lat, item.start_lon,
-                        item.end_lat, item.end_lon,
-                        apiKey, profile, searchRadius
-                    );
-
-                    updateRequestCounter(); // Update counter after each API call
-
-                    const result = {
-                        id: item.id,
-                        start_lat: item.start_lat,
-                        start_lon: item.start_lon,
-                        end_lat: item.end_lat,
-                        end_lon: item.end_lon,
-                        distance_km: route.distance,
-                        duration_minutes: route.duration,
-                        geometry: route.geometry,
-                        status: 'success'
-                    };
-
-                    processedData.push(result);
-                    successCount++;
-
-                    // Mise à jour de l'affichage
-                    const resultDiv = document.createElement('div');
-                    resultDiv.className = 'result-item success';
-                    resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
-                    resultsList.appendChild(resultDiv);
-
-                } catch (error) {
-                    updateRequestCounter(); // Update counter even on error
-
-                    const result = {
-                        id: item.id,
-                        start_lat: item.start_lat,
-                        start_lon: item.start_lon,
-                        end_lat: item.end_lat,
-                        end_lon: item.end_lon,
-                        distance_km: 'ERREUR',
-                        duration_minutes: 'ERREUR',
-                        geometry: null,
-                        status: 'error',
-                        error: error.message
-                    };
-
-                    processedData.push(result);
-                    errorCount++;
-
-                    // Mise à jour de l'affichage
-                    const resultDiv = document.createElement('div');
-                    resultDiv.className = 'result-item error';
-                    resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
-                    resultsList.appendChild(resultDiv);
-                }
-
-                // Mise à jour de la barre de progression
-                const progress = ((i + 1) / totalRoutes) * 100;
-                progressFill.style.width = progress + '%';
-                progressText.textContent = `Traitement: ${i + 1}/${totalRoutes}`;
+                processedData = [];
+                const employerGroups = {};
+                let currentLetter = 'a';
                 
-                updateStats();
+                updateProgress(0, pairs.length);
 
-                // Attendre 1.6s avant la prochaine requête
-                if (i < inputData.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1600));
-                }
-            }
-
-            // Finalisation
-            progressText.textContent = `Terminé: ${successCount} réussi(s), ${errorCount} erreur(s)`;
-            document.getElementById('downloadBtn').style.display = 'inline-block';
-            
-            // Afficher les boutons GeoJSON seulement s'il y a des trajets réussis
-            if (successCount > 0) {
-                document.getElementById('downloadGeoJsonBtn').style.display = 'inline-block';
-                document.getElementById('downloadGeoJsonPointsBtn').style.display = 'inline-block';
-            }
-        }
-
-        function updateStats() {
-            const statsDiv = document.getElementById('stats');
-            statsDiv.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${totalRoutes}</div>
-                    <div class="stat-label">Total</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${successCount}</div>
-                    <div class="stat-label">Réussis</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${errorCount}</div>
-                    <div class="stat-label">Erreurs</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100) || 0}%</div>
-                    <div class="stat-label">Taux de réussite</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${dailyRequestCount}/${DAILY_LIMIT}</div>
-                    <div class="stat-label">Requêtes quotidiennes</div>
-                </div>
-            `;
-        }
-
-        function downloadResults() {
-            if (processedData.length === 0) {
-                alert('Aucune donnée à télécharger');
-                return;
-            }
-
-            // Création du CSV
-            const headers = 'id,start_lat,start_lon,end_lat,end_lon,distance_km,duration_minutes,status,error\n';
-            const csvContent = headers + processedData.map(row => {
-                return `"${row.id}",${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon},"${row.distance_km}","${row.duration_minutes}","${row.status}","${row.error || ''}"`;
-            }).join('\n');
-
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            downloadCSV(csvContent, `itineraires_velo_${timestamp}.csv`);
-        }
-
-        function downloadGeoJSON() {
-            if (processedData.length === 0) {
-                alert('Aucune donnée à télécharger');
-                return;
-            }
-
-            // Filtrer uniquement les trajets réussis avec géométrie
-            const successfulRoutes = processedData.filter(route => 
-                route.status === 'success' && route.geometry
-            );
-
-            if (successfulRoutes.length === 0) {
-                alert('Aucun trajet réussi avec géométrie à exporter');
-                return;
-            }
-
-            // Créer le GeoJSON
-            const geojson = {
-                type: "FeatureCollection",
-                features: []
-            };
-
-            successfulRoutes.forEach(route => {
-                try {
-                    // Décoder la polyline si c'est une chaîne
-                    let coordinates;
-                    if (typeof route.geometry === 'string') {
-                        coordinates = decodePolyline(route.geometry);
-                    } else if (route.geometry && route.geometry.coordinates) {
-                        coordinates = route.geometry.coordinates;
-                    } else {
-                        console.warn(`Géométrie invalide pour ${route.id}`);
-                        return;
+                for (let i = 0; i < pairs.length; i++) {
+                    const pair = pairs[i];
+                    
+                    // Géocoder l'adresse de l'employé
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Délai pour éviter la limite de taux
+                    const employeeCoords = await geocodeAddress(pair.employee);
+                    
+                    if (!employeeCoords) {
+                        showStatus(`Impossible de géocoder l'adresse employé: ${pair.employee}`, 'error');
+                        continue;
                     }
 
-                    const feature = {
-                        type: "Feature",
-                        properties: {
-                            id: route.id,
-                            distance_km: parseFloat(route.distance_km),
-                            duration_minutes: parseInt(route.duration_minutes),
-                            start_lat: route.start_lat,
-                            start_lon: route.start_lon,
-                            end_lat: route.end_lat,
-                            end_lon: route.end_lon,
-                            profile: document.getElementById('profile').value
-                        },
-                        geometry: {
-                            type: "LineString",
-                            coordinates: coordinates
-                        }
-                    };
-
-                    geojson.features.push(feature);
-                } catch (error) {
-                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
-                }
-            });
-
-            // Télécharger le fichier GeoJSON
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
-
-            // Afficher un message de confirmation
-            alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
-        }
-
-        function downloadGeoJSONPoints() {
-            if (processedData.length === 0) {
-                alert('Aucune donnée à télécharger');
-                return;
-            }
-
-            // Filtrer uniquement les trajets réussis avec géométrie
-            const successfulRoutes = processedData.filter(route => 
-                route.status === 'success' && route.geometry
-            );
-
-            if (successfulRoutes.length === 0) {
-                alert('Aucun trajet réussi avec géométrie à exporter');
-                return;
-            }
-
-            // Créer le GeoJSON avec tous les points des itinéraires
-            const geojson = {
-                type: "FeatureCollection",
-                features: []
-            };
-
-            successfulRoutes.forEach(route => {
-                try {
-                    // Décoder la polyline ou utiliser les coordonnées directement
-                    let coordinates;
-                    if (typeof route.geometry === 'string') {
-                        coordinates = decodePolyline(route.geometry);
-                    } else if (route.geometry && route.geometry.coordinates) {
-                        coordinates = route.geometry.coordinates;
+                    // Géocoder l'adresse de l'employeur
+                    let employerCoords;
+                    let groupId;
+                    
+                    if (employerGroups[pair.employer]) {
+                        // Employeur déjà traité
+                        employerCoords = employerGroups[pair.employer].coords;
+                        groupId = employerGroups[pair.employer].groupId;
                     } else {
-                        console.warn(`Géométrie invalide pour ${route.id}`);
-                        return;
-                    }
-
-                    // Ajouter chaque point de la ligne comme un point individuel
-                    coordinates.forEach((point, index) => {
-                        const [longitude, latitude] = point; // Extraction des coordonnées
+                        // Nouveau lieu de travail
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        employerCoords = await geocodeAddress(pair.employer);
                         
-                        const pointFeature = {
-                            type: "Feature",
-                            properties: {
-                                id: route.id,
-                                latitude: latitude,
-                                longitude: longitude,
-                                point_index: index,
-                                total_points: coordinates.length,
-                                distance_km: parseFloat(route.distance_km),
-                                duration_minutes: parseInt(route.duration_minutes),
-                                profile: document.getElementById('profile').value,
-                                point_type: index === 0 ? 'start' : 
-                                          (index === coordinates.length - 1 ? 'end' : 'intermediate')
-                            },
-                            geometry: {
-                                type: "Point",
-                                coordinates: [longitude, latitude]
-                            }
+                        if (!employerCoords) {
+                            showStatus(`Impossible de géocoder l'adresse employeur: ${pair.employer}`, 'error');
+                            continue;
+                        }
+                        
+                        groupId = currentLetter;
+                        employerGroups[pair.employer] = {
+                            coords: employerCoords,
+                            groupId: currentLetter,
+                            count: 0
                         };
-
-                        geojson.features.push(pointFeature);
+                        currentLetter = String.fromCharCode(currentLetter.charCodeAt(0) + 1);
+                    }
+                    
+                    employerGroups[pair.employer].count++;
+                    const employeeNumber = employerGroups[pair.employer].count;
+                    
+                    const id = `employé ${groupId}${employeeNumber}`;
+                    
+                    processedData.push({
+                        id: id,
+                        start_lat: employeeCoords.lat,
+                        start_lon: employeeCoords.lon,
+                        end_lat: employerCoords.lat,
+                        end_lon: employerCoords.lon,
+                        employee_address: pair.employee,
+                        employer_address: pair.employer
                     });
-
-                } catch (error) {
-                    console.error(`Erreur lors du traitement de la géométrie pour ${route.id}:`, error);
+                    
+                    updateProgress(i + 1, pairs.length);
                 }
-            });
 
-            // Télécharger le fichier GeoJSON
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
-
-            // Afficher un message de confirmation
-            alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
+                // Générer le CSV
+                generateCSV();
+                showStatus(`Traitement terminé! ${processedData.length} adresses converties avec succès.`, 'success');
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                showStatus('Erreur lors du traitement: ' + error.message, 'error');
+            } finally {
+                processBtn.disabled = false;
+                processBtn.textContent = '🚀 Convertir les adresses';
+                if (processedData.length > 0) {
+                    downloadBtn.disabled = false;
+                }
+            }
         }
 
-        // Initialize request count on page load
-        document.addEventListener('DOMContentLoaded', loadRequestCount);
+        function generateCSV() {
+            let csvContent = 'id,start_lat,start_lon,end_lat,end_lon\n';
+            
+            processedData.forEach(row => {
+                csvContent += `${row.id},${row.start_lat},${row.start_lon},${row.end_lat},${row.end_lon}\n`;
+            });
+            
+            csvData = csvContent;
+            
+            // Afficher le résultat
+            document.getElementById('outputArea').textContent = csvContent;
+        }
+
+        function downloadCSV() {
+            if (!csvData) {
+                showStatus('Aucune donnée à télécharger', 'error');
+                return;
+            }
+            
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'coordonnees_adresses.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showStatus('Fichier CSV téléchargé avec succès!', 'success');
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('addressInput').value = '';
+            document.getElementById('outputArea').textContent = 'Le fichier CSV apparaîtra ici après conversion...';
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('statusContainer').innerHTML = '';
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('csvFile').value = '';
+            csvData = '';
+            processedData = [];
+            uploadedData = [];
+            
+            showStatus('Données effacées', 'info');
+        }
     </script>
 </body>
 </html>
