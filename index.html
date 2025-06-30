@@ -361,7 +361,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
 
         function updateRequestCounter() {
             dailyRequestCount++;
-            localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: dailyRequestCount }));
+            localStorage.setItem('api iwRequestData', JSON.stringify({ date: getCurrentDate(), count: dailyRequestCount }));
             updateStats();
             checkRequestLimit();
         }
@@ -399,7 +399,9 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         }
 
         function downloadJSON(content, filename) {
-            const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json;charset=utf-8;' });
+           
+
+ const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
@@ -415,9 +417,10 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('csvData').value = e.target.result;
+                    const csvData = e.target.result;
+                    document.getElementById('csvData').value = csvData;
                 };
-                reader.readAsText(file);
+                reader.readAsText(file, 'UTF-8');
             }
         });
 
@@ -515,7 +518,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Authorization': apiKey>") ? apiKey : '5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e',
+                        'Authorization': apiKey ? apiKey : '5b3ce3597851110001cf624883e032e92fc347b39a8b92fd9354600e',
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json'
                     },
