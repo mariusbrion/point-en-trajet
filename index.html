@@ -45,7 +45,7 @@
         .form-section {
             margin-bottom: 30px;
             padding: 25px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba among (255, 255, 255, 0.5);
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -208,6 +208,11 @@
             border-left-color: #28a745;
             color: #155724;
         }
+        .warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+            color: #856404;
+        }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -310,7 +315,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             </div>
         </div>
         <div class="form-section">
-            <button class="btn btn-primary" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
+            <button class="btn btn-primary" id="processBtn" onclick="processRoutes()">🚀 Calculer les itinéraires</button>
             <button class="btn btn-secondary" onclick="downloadSample()">📥 Télécharger exemple CSV</button>
         </div>
         <div class="progress-container" id="progressContainer">
@@ -341,6 +346,58 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         let totalRoutes = 0;
         let successCount = 0;
         let errorCount = 0;
+        let dailyRequestCount = 0;
+        const DAILY_LIMIT = 2000;
+
+        function getCurrentDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function loadRequestCount() {
+            const stored = localStorage.getItem('apiRequestData');
+            if (stored) {
+                const { date, count } = JSON.parse(stored);
+                if (date === getCurrentDate()) {
+                    dailyRequestCount = count;
+                } else {
+                    // Reset if it's a new day
+                    dailyRequestCount = 0;
+                    localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
+                }
+            } else {
+                dailyRequestCount = 0;
+                localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: 0 }));
+            }
+            updateStats();
+            checkRequestLimit();
+        }
+
+        function updateRequestCounter() {
+            dailyRequestCount++;
+            localStorage.setItem('apiRequestData', JSON.stringify({ date: getCurrentDate(), count: dailyRequestCount }));
+            updateStats();
+            checkRequestLimit();
+        }
+
+        function checkRequestLimit() {
+            const warningThreshold = DAILY_LIMIT * 0.9; // 90% of limit
+            const resultsList = document.getElementById('resultsList');
+            const existingWarning = document.querySelector('.result-item.warning');
+            if (existingWarning) existingWarning.remove();
+
+            if (dailyRequestCount >= DAILY_LIMIT) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'result-item warning';
+                warningDiv.innerHTML = `⚠️ Limite quotidienne atteinte (${dailyRequestCount}/${DAILY_LIMIT} requêtes). Veuillez réessayer demain.`;
+                resultsList.insertBefore(warningDiv, resultsList.firstChild);
+                document.getElementById('processBtn').disabled = true;
+            } else if (dailyRequestCount >= warningThreshold) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'result-item warning';
+                warningDiv.innerHTML = `⚠️ Approche de la limite quotidienne (${dailyRequestCount}/${DAILY_LIMIT} requêtes).`;
+                resultsList.insertBefore(warningDiv, resultsList.firstChild);
+            }
+        }
 
         function downloadSample() {
             const sampleData = `id,start_lat,start_lon,end_lat,end_lon
@@ -555,6 +612,18 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                 return;
             }
 
+            // Check current request count before processing
+            loadRequestCount();
+            if (dailyRequestCount >= DAILY_LIMIT) {
+                alert('Limite quotidienne de requêtes API atteinte. Veuillez réessayer demain.');
+                return;
+            }
+
+            if (dailyRequestCount + inputData.length > DAILY_LIMIT) {
+                alert(`Le nombre de trajets demandés (${inputData.length}) dépasserait la limite quotidienne (${DAILY_LIMIT - dailyRequestCount} requêtes restantes). Veuillez réduire le nombre de trajets.`);
+                return;
+            }
+
             // Réinitialisation
             processedData = [];
             totalRoutes = inputData.length;
@@ -574,80 +643,75 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             
             resultsList.innerHTML = '';
 
-            // Traitement par lot avec limitation de débit
-            const batchSize = 3;
-            const delayBetweenBatches = 2000;
+            // Traitement séquentiel avec délai de 1.6s entre chaque requête
+            for (let i = 0; i < inputData.length; i++) {
+                const item = inputData[i];
+                try {
+                    const route = await calculateRouteWithRadius(
+                        item.start_lat, item.start_lon,
+                        item.end_lat, item.end_lon,
+                        apiKey, profile, searchRadius
+                    );
 
-            for (let i = 0; i < inputData.length; i += batchSize) {
-                const batch = inputData.slice(i, i + batchSize);
-                const promises = batch.map(async (item, index) => {
-                    const globalIndex = i + index;
-                    try {
-                        await new Promise(resolve => setTimeout(resolve, index * 500));
-                        
-                        const route = await calculateRouteWithRadius(
-                            item.start_lat, item.start_lon,
-                            item.end_lat, item.end_lon,
-                            apiKey, profile, searchRadius
-                        );
+                    updateRequestCounter(); // Update counter after each API call
 
-                        const result = {
-                            id: item.id,
-                            start_lat: item.start_lat,
-                            start_lon: item.start_lon,
-                            end_lat: item.end_lat,
-                            end_lon: item.end_lon,
-                            distance_km: route.distance,
-                            duration_minutes: route.duration,
-                            geometry: route.geometry,
-                            status: 'success'
-                        };
+                    const result = {
+                        id: item.id,
+                        start_lat: item.start_lat,
+                        start_lon: item.start_lon,
+                        end_lat: item.end_lat,
+                        end_lon: item.end_lon,
+                        distance_km: route.distance,
+                        duration_minutes: route.duration,
+                        geometry: route.geometry,
+                        status: 'success'
+                    };
 
-                        processedData.push(result);
-                        successCount++;
+                    processedData.push(result);
+                    successCount++;
 
-                        // Mise à jour de l'affichage
-                        const resultDiv = document.createElement('div');
-                        resultDiv.className = 'result-item success';
-                        resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
-                        resultsList.appendChild(resultDiv);
+                    // Mise à jour de l'affichage
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item success';
+                    resultDiv.innerHTML = `✅ ${item.id}: ${route.distance} km, ${route.duration} min`;
+                    resultsList.appendChild(resultDiv);
 
-                    } catch (error) {
-                        const result = {
-                            id: item.id,
-                            start_lat: item.start_lat,
-                            start_lon: item.start_lon,
-                            end_lat: item.end_lat,
-                            end_lon: item.end_lon,
-                            distance_km: 'ERREUR',
-                            duration_minutes: 'ERREUR',
-                            geometry: null,
-                            status: 'error',
-                            error: error.message
-                        };
+                } catch (error) {
+                    updateRequestCounter(); // Update counter even on error
 
-                        processedData.push(result);
-                        errorCount++;
+                    const result = {
+                        id: item.id,
+                        start_lat: item.start_lat,
+                        start_lon: item.start_lon,
+                        end_lat: item.end_lat,
+                        end_lon: item.end_lon,
+                        distance_km: 'ERREUR',
+                        duration_minutes: 'ERREUR',
+                        geometry: null,
+                        status: 'error',
+                        error: error.message
+                    };
 
-                        // Mise à jour de l'affichage
-                        const resultDiv = document.createElement('div');
-                        resultDiv.className = 'result-item error';
-                        resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
-                        resultsList.appendChild(resultDiv);
-                    }
+                    processedData.push(result);
+                    errorCount++;
 
-                    // Mise à jour de la barre de progression
-                    const progress = ((globalIndex + 1) / totalRoutes) * 100;
-                    progressFill.style.width = progress + '%';
-                    progressText.textContent = `Traitement: ${globalIndex + 1}/${totalRoutes}`;
-                    
-                    updateStats();
-                });
+                    // Mise à jour de l'affichage
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item error';
+                    resultDiv.innerHTML = `❌ ${item.id}: ${error.message}`;
+                    resultsList.appendChild(resultDiv);
+                }
 
-                await Promise.all(promises);
+                // Mise à jour de la barre de progression
+                const progress = ((i + 1) / totalRoutes) * 100;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `Traitement: ${i + 1}/${totalRoutes}`;
                 
-                if (i + batchSize < inputData.length) {
-                    await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
+                updateStats();
+
+                // Attendre 1.6s avant la prochaine requête
+                if (i < inputData.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1600));
                 }
             }
 
@@ -678,8 +742,12 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
                     <div class="stat-label">Erreurs</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100)}%</div>
+                    <div class="stat-value">${Math.round((successCount/totalRoutes)*100) || 0}%</div>
                     <div class="stat-label">Taux de réussite</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${dailyRequestCount}/${DAILY_LIMIT}</div>
+                    <div class="stat-label">Requêtes quotidiennes</div>
                 </div>
             `;
         }
@@ -841,6 +909,9 @@ employé g2,-0.5626862022,44.8417795503,-0.5579514365,44.8275367638`;
             // Afficher un message de confirmation
             alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
         }
+
+        // Initialize request count on page load
+        document.addEventListener('DOMContentLoaded', loadRequestCount);
     </script>
 </body>
 </html>
