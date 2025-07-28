@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculateur d'Itinéraires Vélo</title>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -348,16 +347,17 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                 <button class="btn btn-primary" id="downloadBtn" onclick="downloadResults()" style="display: none;">
                     💾 Télécharger les résultats CSV
                 </button>
-                <button class="btn btn-geojson" id="downloadGeoJsonBtn" onclick="handleGeoJSONDownload()" style="display: none;">
+                <button class="btn btn-geojson" id="downloadGeoJsonBtn" onclick="downloadGeoJSON()" style="display: none;">
                     🗺️ Télécharger GeoJSON (lignes)
                 </button>
-                <button class="btn btn-points" id="downloadGeoJsonPointsBtn" onclick="handleGeoJSONPointsDownload()" style="display: none;">
+                <button class="btn btn-points" id="downloadGeoJsonPointsBtn" onclick="downloadGeoJSONPoints()" style="display: none;">
                     📍 Télécharger GeoJSON (tous les points)
                 </button>
             </div>
         </div>
         <a href="https://mariusbrion.github.io/analyseur/" class="btn next-step-btn">Étape suivante</a>
     </div>
+    <!-- Signature avec lien vers portfolio -->
     <div class="signature">
         <a href="https://mariusbrion.github.io/portfolio/" target="_blank">
             <span style="font-weight:500">Design & développement</span> 
@@ -365,69 +365,12 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         </a>
     </div>
     <script>
-        // Configuration EmailJS
-        const EMAILJS_CONFIG = {
-            publicKey: 'R4c-lWL0ct37VPOHw',
-            serviceId: 'service_4gx3gk9',
-            templateId: 'template_xo2blrj'
-        };
-
-        // Initialiser EmailJS
-        emailjs.init(EMAILJS_CONFIG.publicKey);
-
         let processedData = [];
         let totalRoutes = 0;
         let successCount = 0;
         let errorCount = 0;
         let dailyRequestCount = 0;
         const DAILY_LIMIT = 2000;
-
-        function showNotification(message, type = 'info') {
-            console.log(message);
-            const resultsList = document.getElementById('resultsList');
-            const notificationDiv = document.createElement('div');
-            notificationDiv.className = `result-item ${type}`;
-            notificationDiv.innerHTML = message;
-            resultsList.insertBefore(notificationDiv, resultsList.firstChild);
-        }
-
-        async function downloadAndEmailGeoJSON(geoJsonData, filename, routeInfo = {}) {
-            // 1. Téléchargement local
-            const blob = new Blob([JSON.stringify(geoJsonData, null, 2)], { 
-                type: 'application/geo+json' 
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            // 2. Envoi automatique par email
-            try {
-                const emailParams = {
-                    filename: filename,
-                    date_creation: new Date().toLocaleString('fr-FR'),
-                    point_depart: routeInfo.depart || 'Non spécifié',
-                    point_arrivee: routeInfo.arrivee || 'Non spécifié',
-                    distance: routeInfo.distance || 'Non calculée',
-                    geojson_content: JSON.stringify(geoJsonData, null, 2)
-                };
-
-                await emailjs.send(
-                    EMAILJS_CONFIG.serviceId,
-                    EMAILJS_CONFIG.templateId,
-                    emailParams
-                );
-
-                showNotification('✅ Fichier envoyé par email avec succès', 'success');
-                
-            } catch (error) {
-                showNotification('❌ Erreur lors de l\'envoi de l\'email: ' + error.message, 'error');
-            }
-        }
 
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
@@ -489,6 +432,30 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             link.click();
             document.body.removeChild(link);
         }
+
+        function downloadJSON(content, filename) {
+            const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csvData = e.target.result;
+                    document.getElementById('csvData').value = csvData;
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+        });
 
         function parseCSVData(csvText) {
             const lines = csvText.trim().split('\n');
@@ -794,7 +761,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             downloadCSV(csvContent, `itineraires_velo_${timestamp}.csv`);
         }
 
-        function handleGeoJSONDownload() {
+        function downloadGeoJSON() {
             if (processedData.length === 0) {
                 alert('Aucune donnée à télécharger');
                 return;
@@ -851,19 +818,12 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             });
 
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            const filename = `itineraires_velo_${timestamp}.geojson`;
-            const routeInfo = {
-                depart: successfulRoutes.length > 0 ? `${successfulRoutes[0].start_lat},${successfulRoutes[0].start_lon}` : 'Non spécifié',
-                arrivee: successfulRoutes.length > 0 ? `${successfulRoutes[0].end_lat},${successfulRoutes[0].end_lon}` : 'Non spécifié',
-                distance: successfulRoutes.length > 0 ? `${successfulRoutes[0].distance_km} km` : 'Non calculée'
-            };
-
-            downloadAndEmailGeoJSON(geojson, filename, routeInfo);
+            downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
 
             alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
         }
 
-        function handleGeoJSONPointsDownload() {
+        function downloadGeoJSONPoints() {
             if (processedData.length === 0) {
                 alert('Aucune donnée à télécharger');
                 return;
@@ -927,14 +887,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             });
 
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            const filename = `points_detaille_itineraires_velo_${timestamp}.geojson`;
-            const routeInfo = {
-                depart: successfulRoutes.length > 0 ? `${successfulRoutes[0].start_lat},${successfulRoutes[0].start_lon}` : 'Non spécifié',
-                arrivee: successfulRoutes.length > 0 ? `${successfulRoutes[0].end_lat},${successfulRoutes[0].end_lon}` : 'Non spécifié',
-                distance: successfulRoutes.length > 0 ? `${successfulRoutes[0].distance_km} km` : 'Non calculée'
-            };
-
-            downloadAndEmailGeoJSON(geojson, filename, routeInfo);
+            downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
 
             alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
         }
