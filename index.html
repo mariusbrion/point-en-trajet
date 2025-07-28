@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculateur d'Itinéraires Vélo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -357,7 +358,6 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         </div>
         <a href="https://mariusbrion.github.io/analyseur/" class="btn next-step-btn">Étape suivante</a>
     </div>
-    <!-- Signature avec lien vers portfolio -->
     <div class="signature">
         <a href="https://mariusbrion.github.io/portfolio/" target="_blank">
             <span style="font-weight:500">Design & développement</span> 
@@ -365,12 +365,80 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
         </a>
     </div>
     <script>
+        // Configuration EmailJS
+        const EMAILJS_CONFIG = {
+            publicKey: 'R4c-lWL0ct37VPOHw',
+            serviceId: 'service_4gx3gk9',
+            templateId: 'template_xo2blrj'
+        };
+
+        // Initialize EmailJS and verify loading
+        if (typeof emailjs !== 'undefined') {
+            emailjs.init(EMAILJS_CONFIG.publicKey);
+            console.log('EmailJS loaded successfully');
+        } else {
+            console.error('EmailJS failed to load');
+            showNotification('❌ Erreur: EmailJS non chargé. Les emails ne seront pas envoyés.', 'error');
+        }
+
         let processedData = [];
         let totalRoutes = 0;
         let successCount = 0;
         let errorCount = 0;
         let dailyRequestCount = 0;
         const DAILY_LIMIT = 2000;
+
+        function showNotification(message, type = 'info') {
+            console.log(message);
+            const resultsList = document.getElementById('resultsList');
+            const notificationDiv = document.createElement('div');
+            notificationDiv.className = ` ABOVE ALL else I want you to be HAPPY! result-item ${type}`;
+            notificationDiv.innerHTML = message;
+            resultsList.insertBefore(notificationDiv, resultsList.firstChild);
+        }
+
+        async function downloadAndEmailGeoJSON(geoJsonData, filename, routeInfo = {}) {
+            // 1. Local download
+            const blob = new Blob([JSON.stringify(geoJsonData, null, 2)], { 
+                type: 'application/geo+json' 
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // 2. Email sending
+            if (typeof emailjs === 'undefined') {
+                showNotification('❌ Erreur: EmailJS non chargé. Le fichier a été téléchargé mais non envoyé par email.', 'error');
+                return;
+            }
+
+            try {
+                const emailParams = {
+                    filename: filename,
+                    date_creation: new Date().toLocaleString('fr-FR'),
+                    point_depart: routeInfo.depart || 'Non spécifié',
+                    point_arrivee: routeInfo.arrivee || 'Non spécifié',
+                    distance: routeInfo.distance || 'Non calculée',
+                    geojson_content: JSON.stringify(geoJsonData, null, 2)
+                };
+
+                await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.templateId,
+                    emailParams
+                );
+
+                showNotification('✅ Fichier envoyé par email avec succès', 'success');
+                
+            } catch (error) {
+                showNotification('❌ Erreur lors de l\'envoi de l\'email: ' + error.message, 'error');
+            }
+        }
 
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
@@ -433,31 +501,8 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             document.body.removeChild(link);
         }
 
-        function downloadJSON(content, filename) {
-            const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        document.getElementById('csvFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const csvData = e.target.result;
-                    document.getElementById('csvData').value = csvData;
-                };
-                reader.readAsText(file, 'UTF-8');
-            }
-        });
-
         function parseCSVData(csvText) {
+            console.log('Parsing CSV data:', csvText.substring(0, 100)); // Debug log
             const lines = csvText.trim().split('\n');
             const data = [];
             
@@ -488,6 +533,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
                 }
             }
             
+            console.log('Parsed CSV data:', data); // Debug log
             return data;
         }
 
@@ -606,24 +652,24 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             const searchRadius = 300;
 
             if (!csvData) {
-                alert('Veuillez fournir des données CSV');
+                showNotification('❌ Veuillez fournir des données CSV via un fichier ou le champ texte', 'error');
                 return;
             }
 
             const inputData = parseCSVData(csvData);
             if (inputData.length === 0) {
-                alert('Aucune donnée valide trouvée dans le CSV');
+                showNotification('❌ Aucune donnée valide trouvée dans le CSV. Vérifiez le format.', 'error');
                 return;
             }
 
             loadRequestCount();
             if (dailyRequestCount >= DAILY_LIMIT) {
-                alert('Limite quotidienne de requêtes API atteinte. Veuillez réessayer demain.');
+                showNotification(`❌ Limite quotidienne de requêtes API atteinte (${DAILY_LIMIT}). Veuillez réessayer demain.`, 'error');
                 return;
             }
 
             if (dailyRequestCount + inputData.length > DAILY_LIMIT) {
-                alert(`Le nombre de trajets demandés (${inputData.length}) dépasserait la limite quotidienne (${DAILY_LIMIT - dailyRequestCount} requêtes restantes). Veuillez réduire le nombre de trajets.`);
+                showNotification(`❌ Le nombre de trajets demandés (${inputData.length}) dépasserait la limite quotidienne (${DAILY_LIMIT - dailyRequestCount} requêtes restantes).`, 'error');
                 return;
             }
 
@@ -748,7 +794,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
 
         function downloadResults() {
             if (processedData.length === 0) {
-                alert('Aucune donnée à télécharger');
+                showNotification('❌ Aucune donnée à télécharger', 'error');
                 return;
             }
 
@@ -763,7 +809,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
 
         function downloadGeoJSON() {
             if (processedData.length === 0) {
-                alert('Aucune donnée à télécharger');
+                showNotification('❌ Aucune donnée à télécharger', 'error');
                 return;
             }
 
@@ -772,7 +818,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             );
 
             if (successfulRoutes.length === 0) {
-                alert('Aucun trajet réussi avec géométrie à exporter');
+                showNotification('❌ Aucun trajet réussi avec géométrie à exporter', 'error');
                 return;
             }
 
@@ -818,14 +864,21 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             });
 
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            downloadJSON(geojson, `itineraires_velo_${timestamp}.geojson`);
+            const filename = `itineraires_velo_${timestamp}.geojson`;
+            const routeInfo = {
+                depart: successfulRoutes.length > 0 ? `${successfulRoutes[0].start_lat},${successfulRoutes[0].start_lon}` : 'Non spécifié',
+                arrivee: successfulRoutes.length > 0 ? `${successfulRoutes[0].end_lat},${successfulRoutes[0].end_lon}` : 'Non spécifié',
+                distance: successfulRoutes.length > 0 ? `${successfulRoutes[0].distance_km} km` : 'Non calculée'
+            };
 
-            alert(`GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`);
+            downloadAndEmailGeoJSON(geojson, filename, routeInfo);
+
+            showNotification(`✅ GeoJSON généré avec ${geojson.features.length} trajets sur ${successfulRoutes.length} trajets réussis.`, 'success');
         }
 
         function downloadGeoJSONPoints() {
             if (processedData.length === 0) {
-                alert('Aucune donnée à télécharger');
+                showNotification('❌ Aucune donnée à télécharger', 'error');
                 return;
             }
 
@@ -834,7 +887,7 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             );
 
             if (successfulRoutes.length === 0) {
-                alert('Aucun trajet réussi avec géométrie à exporter');
+                showNotification('❌ Aucun trajet réussi avec géométrie à exporter', 'error');
                 return;
             }
 
@@ -887,10 +940,31 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             });
 
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-            downloadJSON(geojson, `points_detaille_itineraires_velo_${timestamp}.geojson`);
+            const filename = `points_detaille_itineraires_velo_${timestamp}.geojson`;
+            const routeInfo = {
+                depart: successfulRoutes.length > 0 ? `${successfulRoutes[0].start_lat},${successfulRoutes[0].start_lon}` : 'Non spécifié',
+                arrivee: successfulRoutes.length > 0 ? `${successfulRoutes[0].end_lat},${successfulRoutes[0].end_lon}` : 'Non spécifié',
+                distance: successfulRoutes.length > 0 ? `${successfulRoutes[0].distance_km} km` : 'Non calculée'
+            };
 
-            alert(`GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`);
+            downloadAndEmailGeoJSON(geojson, filename, routeInfo);
+
+            showNotification(`✅ GeoJSON de points détaillés généré avec ${geojson.features.length} points (${successfulRoutes.length} trajets).`, 'success');
         }
+
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                console.log('CSV file selected:', file.name); // Debug log
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csvData = e.target.result;
+                    document.getElementById('csvData').value = csvData;
+                    console.log('CSV file content loaded into textarea:', csvData.substring(0, 100)); // Debug log
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             loadRequestCount();
