@@ -411,38 +411,38 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            // 2. Upload to Transfer.sh
+            // 2. Upload to Catbox.moe
             let fileLink = 'Non disponible';
             try {
-                console.log(`Attempting to upload to Transfer.sh: https://transfer.sh/${filename}`);
-                const response = await fetch(`https://transfer.sh/${filename}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/geo+json',
-                        'Accept': 'text/plain'
-                    },
-                    body: blob
+                console.log(`Attempting to upload to Catbox.moe: ${filename}`);
+                const formData = new FormData();
+                formData.append('reqtype', 'fileupload');
+                formData.append('fileToUpload', blob, filename);
+
+                const response = await fetch('https://catbox.moe/user/api.php', {
+                    method: 'POST',
+                    body: formData
                 });
 
-                console.log(`Transfer.sh response status: ${response.status}`);
+                console.log(`Catbox.moe response status: ${response.status}`);
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error(`Transfer.sh error response: ${errorText}`);
-                    throw new Error(`Échec de l'upload vers Transfer.sh: HTTP ${response.status} - ${errorText}`);
+                    console.error(`Catbox.moe error response: ${errorText}`);
+                    throw new Error(`Échec de l'upload vers Catbox.moe: HTTP ${response.status} - ${errorText}`);
                 }
 
                 const result = await response.text();
                 fileLink = result.trim();
-                console.log(`Transfer.sh raw response: ${result}`);
-                if (!fileLink.startsWith('https://transfer.sh/')) {
-                    throw new Error('Échec de l\'upload vers Transfer.sh: Lien de téléchargement invalide');
+                console.log(`Catbox.moe raw response: ${result}`);
+                if (!fileLink.startsWith('https://files.catbox.moe/')) {
+                    throw new Error('Échec de l\'upload vers Catbox.moe: Lien de téléchargement invalide');
                 }
 
-                console.log('File uploaded to Transfer.sh, download URL:', fileLink);
+                console.log('File uploaded to Catbox.moe, download URL:', fileLink);
             } catch (error) {
                 const errorMessage = error.message || 'Erreur inconnue';
-                showNotification(`❌ Erreur lors de l'upload vers Transfer.sh: ${errorMessage}. Le fichier a été téléchargé localement.`, 'error');
-                console.error('Transfer.sh upload error:', error);
+                showNotification(`❌ Erreur lors de l'upload vers Catbox.moe: ${errorMessage}. Le fichier a été téléchargé localement.`, 'error');
+                console.error('Catbox.moe upload error:', error);
             }
 
             // 3. Send email with download link
