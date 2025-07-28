@@ -372,6 +372,9 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             templateId: 'template_xo2blrj'
         };
 
+        // Dropbox Access Token
+        const DROPBOX_ACCESS_TOKEN = 'sl.u.AF4C3mmz5T8Hq6VFqtYrLls9PcswB8ygVzx5J6Urv-nGJ8nNqRmiojWDdMYJTQa_A8uu1We7AW69VheJhjPPaub8UspNJeeLYRYBSaNJQcPBODrdNqIJlgOoSF8FxRgQWvZYrWoZ9vEn-Tyt05wJcuE4J8hPvFC6BtxWCcoFryp2awXcfUjNy4zGqyiHogKPKZLrjtfAiCh2mut5awzjR3_M4Eg22R9l4-P1Pp3JzDHjm_gwQ9T99HjW8rasyJANkv6gfCSM5SS0CiCuNs5mihRoL94hCWAEFHnUCIx7Vy1zzp_j2XMkg4mHlmf-d6JXPWAwm6jaQGl_2LrmHul7O9y-7riveNFZgmPj4CtBiuizWPbTHUyHHLpV2HVEwRxarzYYy7rhYjnYQx5Vst8HFqdJDpSXO1IRBMttgn_T7kuGVO5wZ2fYDmf84mZgH8K5m3kzc0e7cdUpwQcxQpfUYEij7872suBzAIAh76T56vCj5HfaGANTV5trjGu93-H6V3R4hQhw3S46uyw2hs4ofT0Vq455UImkVOTS6XM2yynIyudmrp1GfbbksxqeE48VzzIvXicGO7H7LU7_A7chZ28WsrcYAvQmIEq2QUM47XRQfm48dVJqvs9XhMo6ZThUxN1KkGjFAdCnvnTslzFnAZduLUfVTmupb6U0YKPnmDIOLNaJTUH2aWei6aKEfEC6j9tM6GM3SB7C6NbMg7aNh1FKxxKRwUieArP5yekxbHUmJz7ZxiNGk_p6XBNeguyieDirX0fd111QO0mNDjqPtHGqcesL4FQfi_NgL0NUuHhQCl6siA5Ruhciyv0Nf4MTKoKuXg70IQz_Qsa6qkaI4uED3rJaLtxCaKc2-qzHlsNdpY5hjKkde6WcncwtWG-Stf8VsCqP0IgTt32LY8V4JCRFjwpcR2j8Oz0DI6yGwpVg2KmNPW-iky0EI1ER52JJL7D1VoIRH-oZ2T0pRmvRS0mhYubQOAsbfinf_NjZmrOKYaPP9wQhhgZysBkEocf20OO3P1G4fJzrfC-fbd-oRWQumsDr8N8taQ6fr65zRW_Ujofhb63bOkTkfsO4v9Hm01TU4rXMxeG0ydmzCKxHfIVXL4UhKP13VUp4ICSPwJsRgw-xliuYyumXk-iDqdt8_R-QpAZX64SwxrqdBKfb_HsxX3QomJmgbayWRMDDKdXWwPthlJG2Phb_wlE8L07JE9NiV-_8krQcne-itbckUFJGMygLaHgBvdJRfWLIIc94CYnuXzbO6VHsXpZ81wPzf9XFEp8digXr2FGxiuCbGXZTxjeSKhzvot_evB7zKEjhq-RD-1LQU_ymwzuWgGCJZZWP0MscBvz0yxmGxBqb_-QKALdduDusbNdGg_E-9Qs6Jn23srAYSOqjknJebLykuE5oWWlAhqlJSX5mmhYOyRgr6OaO8znE1W_hd8v4Ce0iuA';
+
         // Initialize EmailJS and verify loading
         if (typeof emailjs !== 'undefined') {
             emailjs.init(EMAILJS_CONFIG.publicKey);
@@ -411,38 +414,93 @@ employé h1,-0.6092923667,44.8360177875,-0.6031024699,44.8266054909"></textarea>
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            // 2. Upload to Catbox.moe
+            // 2. Upload to Dropbox
             let fileLink = 'Non disponible';
             try {
-                console.log(`Attempting to upload to Catbox.moe: ${filename}`);
-                const formData = new FormData();
-                formData.append('reqtype', 'fileupload');
-                formData.append('fileToUpload', blob, filename);
-
-                const response = await fetch('https://catbox.moe/user/api.php', {
+                console.log(`Attempting to upload to Dropbox: ${filename}`);
+                const dropboxPath = `/itineraires_velo/${filename}`;
+                
+                // Upload file to Dropbox
+                const uploadResponse = await fetch('https://content.dropboxapi.com/2/files/upload', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                        'Dropbox-API-Arg': JSON.stringify({
+                            path: dropboxPath,
+                            mode: 'add',
+                            autorename: true,
+                            mute: false
+                        }),
+                        'Content-Type': 'application/octet-stream'
+                    },
+                    body: blob
                 });
 
-                console.log(`Catbox.moe response status: ${response.status}`);
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`Catbox.moe error response: ${errorText}`);
-                    throw new Error(`Échec de l'upload vers Catbox.moe: HTTP ${response.status} - ${errorText}`);
+                console.log(`Dropbox upload response status: ${uploadResponse.status}`);
+                if (!uploadResponse.ok) {
+                    const errorText = await uploadResponse.text();
+                    console.error(`Dropbox upload error response: ${errorText}`);
+                    throw new Error(`Échec de l'upload vers Dropbox: HTTP ${uploadResponse.status} - ${errorText}`);
                 }
 
-                const result = await response.text();
-                fileLink = result.trim();
-                console.log(`Catbox.moe raw response: ${result}`);
-                if (!fileLink.startsWith('https://files.catbox.moe/')) {
-                    throw new Error('Échec de l\'upload vers Catbox.moe: Lien de téléchargement invalide');
+                const uploadResult = await uploadResponse.json();
+                console.log('File uploaded to Dropbox:', uploadResult);
+
+                // Create shared link
+                const shareResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        path: dropboxPath,
+                        settings: {
+                            requested_visibility: 'public',
+                            audience: 'public',
+                            access: 'viewer'
+                        }
+                    })
+                });
+
+                console.log(`Dropbox share response status: ${shareResponse.status}`);
+                if (!shareResponse.ok) {
+                    const errorText = await shareResponse.text();
+                    console.error(`Dropbox share error response: ${errorText}`);
+                    if (errorText.includes('shared_link_already_exists')) {
+                        // Fetch existing shared link
+                        const listSharedLinksResponse = await fetch('https://api.dropboxapi.com/2/sharing/list_shared_links', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                path: dropboxPath,
+                                direct_only: true
+                            })
+                        });
+
+                        const listSharedLinksResult = await listSharedLinksResponse.json();
+                        if (listSharedLinksResult.links.length > 0) {
+                            fileLink = listSharedLinksResult.links[0].url.replace('?dl=0', '?dl=1');
+                            console.log('Existing shared link retrieved:', fileLink);
+                        } else {
+                            throw new Error('Aucun lien partagé existant trouvé');
+                        }
+                    } else {
+                        throw new Error(`Échec de la création du lien partagé: HTTP ${shareResponse.status} - ${errorText}`);
+                    }
+                } else {
+                    const shareResult = await shareResponse.json();
+                    fileLink = shareResult.url.replace('?dl=0', '?dl=1'); // Force direct download
+                    console.log('Shared link created:', fileLink);
                 }
 
-                console.log('File uploaded to Catbox.moe, download URL:', fileLink);
             } catch (error) {
                 const errorMessage = error.message || 'Erreur inconnue';
-                showNotification(`❌ Erreur lors de l'upload vers Catbox.moe: ${errorMessage}. Le fichier a été téléchargé localement.`, 'error');
-                console.error('Catbox.moe upload error:', error);
+                showNotification(`❌ Erreur lors de l'upload vers Dropbox: ${errorMessage}. Le fichier a été téléchargé localement.`, 'error');
+                console.error('Dropbox error:', error);
             }
 
             // 3. Send email with download link
